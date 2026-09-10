@@ -1,0 +1,35 @@
+{
+ "profil": "A",
+ "datum": "2026-09-10",
+ "anzeigen": {
+  "1": "Sülz, 3 Zi, 78 m², Bj 1958, 4. OG ohne Aufzug, vermietet seit 2019, KM 890, HG 310, KP 398000, Klasse E, provisionsfrei",
+  "2": "Neustadt-Süd, 2 Zi, 61 m², Bj 1905, 2. OG, Stuck, vermietet, KM 720, KP 419000, kein Energieausweis genannt, Rücklage nicht genannt",
+  "3": "Ehrenfeld, 3 Zi, 84 m², Bj 1972, EG Terrasse, frei, KP 365000, Klasse D, Sanierungsbeschluss Fassade 2027",
+  "4": "Lindenthal, 4 Zi, 112 m², Bj 1930, 1. OG, vermietet, KM 1450, HG 420, KP 445000, Denkmalschutz, Klasse G",
+  "5": "Rodenkirchen, 2 Zi, 55 m², Bj 1996, 3. OG Aufzug Balkon, vermietet, KM 690, KP 289000, Klasse C, Erbbaurecht Rest 41 J",
+  "6": "Neustadt-Nord, 3 Zi, 92 m², Bj 1910, 3. OG, vermietet, KM 1180, KP 440000, Gasetagenheizung Bj 2004, Klasse F",
+  "7": "Marienburg, 2 Zi, 66 m², Bj 1985, EG, vermietet an Verwandte des Verkäufers, KM 520, KP 349000, Klasse D",
+  "8": "Sülz, 1 Zi, 34 m², Bj 2016, 5. OG Aufzug, vermietet, KM 610, HG 140, KP 219000, Klasse A+",
+  "9": "Ehrenfeld, 3 Zi, 71 m², Bj 1965, 2. OG, vermietet, KM 780, KP 335000, Klasse E, Hausgeldrückstände in der WEG",
+  "10": "Lindenthal, 2 Zi, 58 m², Bj 1955, DG, frei, KP 312000, Energieausweis nur zur Besichtigung, Provision 3,57 %",
+  "11": "Neustadt-Süd, 3 Zi, 88 m², Bj 1900, 1. OG, vermietet seit 2011, KM 860, KP 442000, Klasse H, Balkon, Kernsanierung 2009",
+  "12": "Rodenkirchen, 3 Zi, 80 m², Bj 2001, 1. OG, vermietet, KM 1050, HG 280, KP 415000, Klasse B, Tiefgarage"
+ },
+ "hinsehen": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  8,
+  9,
+  10,
+  11,
+  12
+ ],
+ "nicht_hinsehen": [
+  5,
+  7
+ ],
+ "hinweis": "Alle Zahlen erfunden. Versiegelt vor dem ersten Score (A0.3). Nicht nachziehen."
+}
