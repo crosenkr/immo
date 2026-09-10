@@ -1,0 +1,3 @@
+# Belegschrank. Je Beleg: id, titel, url, abruf, stichtag, sha256, lizenz, gueltig_bis, zugriffsweg
+# Wird in Phase 1a gefüllt. Eine Zahl ohne Manifest-id fällt nach R18 durch.
+belege: []
