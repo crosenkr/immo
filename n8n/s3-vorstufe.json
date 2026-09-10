@@ -1,0 +1,377 @@
+{
+  "name": "Immo S3 Buchhalter Vorstufe (Phase 1a)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "7,22,37,52 * * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1200,
+        300
+      ],
+      "id": "b1",
+      "name": "Alle 15 Minuten (versetzt)"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "zustand",
+              "condition": "eq",
+              "keyValue": "neu"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        300
+      ],
+      "id": "b2",
+      "name": "Neue Objekte lesen"
+    },
+    {
+      "parameters": {
+        "jsCode": "// S3 Buchhalter, Vorstufe (Phase 1a). n8n Code-Knoten, Modus \"Run Once for All Items\".\n// Eingabe: Zeilen aus objekt mit zustand = 'neu'. Ausgabe: dieselben Zeilen mit Vorbewertung.\n// Nur deterministische Rechnung aus den Anzeigenfeldern, kein Modellaufruf, kein Abruf (R20).\n// Deckel (R4) am Angebotspreis als Notbehelf, bis das Referenzband im Belegschrank liegt:\n// ueber Deckel -> 'unvollstaendig', nicht 'ausgeschlossen'. Belegdichte (R8) wird ehrlich ausgewiesen.\n// Werte aus profile/basis.yaml, profil-a.yaml, profil-b.yaml, anker.yaml (Stand 10.09.2026). Aenderung dort zuerst.\n\nconst VERSION = 's3-vorstufe-2026-09-10.1';\nconst NEBENKOSTEN = 0.065 + 0.015 + 0.005;          // Grunderwerbsteuer, Notar, Grundbuch (basis.yaml)\nconst COURTAGE_RUECKFALL = 0.0357;                    // wenn die Anzeige nichts nennt (E3)\n\nconst PROFILE = {\n  A: { deckel: 500000,\n       kernlage: ['Ehrenfeld', 'Neustadt-Nord', 'Neustadt-Süd', 'Lindenthal', 'Sülz', 'Rodenkirchen', 'Marienburg'],\n       gewichte: { preisabstand_pct: 26, bruttorendite_pct: 19, zustand: 15, energieklasse: 13, ruecklage_deckung: 13, wohnlage_amtlich: 8, grundriss_zimmer: 6 },\n       zimmer: { 1: 20, 2: 55, 3: 80, 4: 95 } },\n  B: { deckel: 900000,\n       kernlage: ['Ehrenfeld', 'Lindenthal', 'Sülz', 'Rodenkirchen', 'Marienburg', 'Junkersdorf'],\n       gewichte: { zustand: 22, preisabstand_pct: 20, energieklasse: 18, wohnflaeche_fit: 12, grundstueck_fit: 10, wohnlage_amtlich: 10, grundriss_zimmer: 8 },\n       zimmer: { 2: 20, 3: 55, 4: 85, 5: 100, 6: 85 },\n       wohnflaeche: { 90: 0, 120: 100, 170: 100, 210: 0 },\n       grundstueck: { 200: 0, 350: 100, 700: 100, 1200: 0 } },\n};\n\nfunction interp(anker, x) {\n  // lineare Interpolation zwischen Ankern; ausserhalb: Randwert (geklemmt)\n  const pts = Object.keys(anker).map(Number).sort((a, b) => a - b);\n  if (x <= pts[0]) return anker[pts[0]];\n  if (x >= pts[pts.length - 1]) return anker[pts[pts.length - 1]];\n  for (let i = 0; i < pts.length - 1; i++) {\n    const a = pts[i], b = pts[i + 1];\n    if (x >= a && x <= b) return anker[a] + (anker[b] - anker[a]) * (x - a) / (b - a);\n  }\n  return null;\n}\n\nfunction profilVon(suchauftrag) {\n  const s = String(suchauftrag || '').trim();\n  if (/^A\\b/i.test(s)) return 'A';\n  if (/^B\\b/i.test(s)) return 'B';\n  return null;\n}\n\nfunction normStadtteil(s) {\n  return String(s || '').replace(/ue/g, 'ü').replace(/Sue/g, 'Sü').replace(/Neustadt-Sued/i, 'Neustadt-Süd').trim();\n}\n\nconst out = [];\nfor (const it of $input.all()) {\n  const j = { ...it.json };\n  const p = profilVon(j.suchauftrag);\n  const prof = p ? PROFILE[p] : null;\n  const punkte = {};           // kriterium -> 0..100, nur wenn belegt\n  const fahnen = [];\n\n  // Gesamtaufwand und Deckel (Notbehelf am Angebotspreis, R4)\n  const kp = (typeof j.kaufpreis_eur === 'number') ? j.kaufpreis_eur : null;\n  const prov = (typeof j.provision_kaeufer_pct === 'number') ? j.provision_kaeufer_pct / 100 : COURTAGE_RUECKFALL;\n  const gesamtaufwand = kp ? Math.round(kp * (1 + NEBENKOSTEN + prov)) : null;\n  let deckel_status;\n  if (!prof) deckel_status = 'kein_profil';\n  else if (gesamtaufwand == null) { deckel_status = 'kein_preis'; fahnen.push('preis_fehlt_in_der_anzeige'); }\n  else deckel_status = gesamtaufwand <= prof.deckel ? 'unter_deckel' : 'ueber_deckel_angebotspreis';   // R4: unvollstaendig, nicht ausgeschlossen\n\n  // Lage (E2): Kernlage 100, im gezeichneten Radius 50\n  let lage_stufe = 'im_radius';\n  if (prof) {\n    const st = normStadtteil(j.stadtteil);\n    if (st && st !== 'fehlt in der Anzeige' && prof.kernlage.includes(st)) lage_stufe = 'kernlage';\n    punkte.wohnlage_amtlich = lage_stufe === 'kernlage' ? 100 : 50;\n  }\n\n  // Grundriss\n  if (prof && typeof j.zimmer === 'number') punkte.grundriss_zimmer = interp(prof.zimmer, j.zimmer);\n\n  // Profil B: Zielbaender\n  if (p === 'B') {\n    if (typeof j.wohnflaeche_qm === 'number') punkte.wohnflaeche_fit = interp(prof.wohnflaeche, j.wohnflaeche_qm);\n    if (typeof j.grundstueck_qm === 'number') punkte.grundstueck_fit = interp(prof.grundstueck, j.grundstueck_qm);\n  }\n\n  // Vorscore: gewichtetes Mittel nur ueber belegte Kriterien; Belegdichte = Anteil der belegten Gewichte (R8)\n  let vorscore = null, belegdichte = 0;\n  if (prof) {\n    let gsum = 0, wsum = 0;\n    for (const [k, g] of Object.entries(prof.gewichte)) {\n      if (typeof punkte[k] === 'number') { gsum += g; wsum += g * punkte[k]; }\n    }\n    belegdichte = Math.round(gsum) / 100;\n    vorscore = gsum ? Math.round(wsum / gsum) : null;\n  }\n\n  Object.assign(j, {\n    profil: p || 'unbekannt',\n    gesamtaufwand_eur: gesamtaufwand,\n    deckel_status,\n    lage_stufe: prof ? lage_stufe : null,\n    vorscore,\n    belegdichte,\n    bewertung_json: JSON.stringify({ punkte, fahnen, version: VERSION, hinweis: 'Vorstufe aus Anzeigenfeldern; Preisabstand, Zustand, Energie, Rendite, Ruecklage fehlen bis C1/C2' }),\n    zustand: 'vorbewertet',\n    bewertet_am: new Date().toISOString(),\n  });\n  out.push({ json: j });\n}\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        300
+      ],
+      "id": "b3",
+      "name": "Vorbewertung rechnen"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "objekt_schluessel",
+              "condition": "eq",
+              "keyValue": "={{ $json.objekt_schluessel }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profil": "={{ $json.profil }}",
+            "gesamtaufwand_eur": "={{ $json.gesamtaufwand_eur }}",
+            "deckel_status": "={{ $json.deckel_status }}",
+            "lage_stufe": "={{ $json.lage_stufe }}",
+            "vorscore": "={{ $json.vorscore }}",
+            "belegdichte": "={{ $json.belegdichte }}",
+            "bewertung_json": "={{ $json.bewertung_json }}",
+            "bewertet_am": "={{ $json.bewertet_am }}",
+            "zustand": "={{ $json.zustand }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "profil",
+              "displayName": "profil",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "gesamtaufwand_eur",
+              "displayName": "gesamtaufwand_eur",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "deckel_status",
+              "displayName": "deckel_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lage_stufe",
+              "displayName": "lage_stufe",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "vorscore",
+              "displayName": "vorscore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "belegdichte",
+              "displayName": "belegdichte",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "bewertung_json",
+              "displayName": "bewertung_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "bewertet_am",
+              "displayName": "bewertet_am",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "zustand",
+              "displayName": "zustand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -528,
+        300
+      ],
+      "id": "b4",
+      "name": "objekt aktualisieren"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "d6rJmS98tcnUCPiw",
+          "mode": "list",
+          "cachedResultName": "ereignis",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/d6rJmS98tcnUCPiw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "objekt_schluessel": "={{ $('Vorbewertung rechnen').item.json.objekt_schluessel }}",
+            "typ": "VORBEWERTET",
+            "zeit": "={{ $now.toISO() }}",
+            "lauf_id": "={{ $execution.id }}",
+            "quelle": "s3",
+            "nutzlast": "={{ JSON.stringify({profil: $('Vorbewertung rechnen').item.json.profil, vorscore: $('Vorbewertung rechnen').item.json.vorscore, belegdichte: $('Vorbewertung rechnen').item.json.belegdichte, deckel_status: $('Vorbewertung rechnen').item.json.deckel_status, gesamtaufwand_eur: $('Vorbewertung rechnen').item.json.gesamtaufwand_eur}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "objekt_schluessel",
+              "displayName": "objekt_schluessel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "typ",
+              "displayName": "typ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "zeit",
+              "displayName": "zeit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lauf_id",
+              "displayName": "lauf_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "quelle",
+              "displayName": "quelle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nutzlast",
+              "displayName": "nutzlast",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -304,
+        300
+      ],
+      "id": "b5",
+      "name": "Ereignis VORBEWERTET"
+    },
+    {
+      "parameters": {
+        "content": "### S3 Buchhalter, Vorstufe (Phase 1a)\n\nLiest objekt mit zustand = neu, rechnet aus den Anzeigenfeldern:\nGesamtaufwand (Kaufpreis + 8,5 % Nebenkosten + Courtage, Rueckfall 3,57 %),\nDeckel am Angebotspreis als Notbehelf (R4: ueber Deckel = unvollstaendig),\nLage (Kernlage 100, im Radius 50), Zimmer, bei B auch Wohnflaeche und Grundstueck.\nVorscore nur ueber belegte Kriterien, Belegdichte ehrlich (0,14 bis 0,40).\nDie fehlenden Kriterien (Preisabstand, Zustand, Energie, Rendite, Ruecklage)\nkommen mit C1/C2 und dem Referenzband.\n\nVorher in objekt anlegen: profil, deckel_status, lage_stufe, bewertung_json, bewertet_am (string);\ngesamtaufwand_eur, vorscore, belegdichte (number).",
+        "height": 320,
+        "width": 460,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        520
+      ],
+      "id": "b6",
+      "name": "Sticky: S3"
+    }
+  ],
+  "connections": {
+    "Alle 15 Minuten (versetzt)": {
+      "main": [
+        [
+          {
+            "node": "Neue Objekte lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neue Objekte lesen": {
+      "main": [
+        [
+          {
+            "node": "Vorbewertung rechnen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vorbewertung rechnen": {
+      "main": [
+        [
+          {
+            "node": "objekt aktualisieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "objekt aktualisieren": {
+      "main": [
+        [
+          {
+            "node": "Ereignis VORBEWERTET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "errorWorkflow": "HLOJsWSboUnvLnFf",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "tags": []
+}

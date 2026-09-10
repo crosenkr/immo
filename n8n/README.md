@@ -37,3 +37,9 @@ s1-sammler-is24.json ist v3.1. Dedupe geschieht in zwei Stufen: "Dublette im Lau
 s4-digest-telegram.json ist der minimale Zusteller: taeglich 7:00 Europe/Berlin, neue Objekte der letzten 24 h je Suchauftrag, HTML-Nachricht an Chat-ID 884133793, geteilt unter 4096 Zeichen, Ereignis DIGEST je Lauf. Credential "Telegram Immo Digest" am Knoten "Telegram senden" waehlen.
 
 werkzeug-tabellen-leeren.json loescht alle Zeilen in objekt und ereignis. Nur von Hand starten, nie aktivieren.
+
+## S3 Vorstufe und S4 v2 (10.09.2026, abgenommen)
+
+s3-vorstufe.json ist der Buchhalter in der Vorstufe. Er liest objekt mit zustand = neu und rechnet aus den Anzeigenfeldern: Gesamtaufwand (Kaufpreis plus 8,5 Prozent Nebenkosten plus Courtage, Rueckfall 3,57 Prozent), Deckelstatus am Angebotspreis als Notbehelf nach R4 (unter_deckel, ueber_deckel_angebotspreis, kein_preis), Lagestufe (kernlage, im_radius), Punkte fuer Zimmer, bei Profil B auch Wohnflaeche und Grundstueck. Der Vorscore ist das gewichtete Mittel nur ueber belegte Kriterien. Die Belegdichte ist der Anteil der belegten Gewichte (A 0,14; B 0,30 bis 0,40). Der Code liegt in s3_vorstufe.js. Neue Spalten in objekt: profil, deckel_status, lage_stufe, bewertung_json, bewertet_am (string); gesamtaufwand_eur, vorscore, belegdichte (number). Test: 90 Zeilen gelesen, 90 aktualisiert, 90 Ereignisse VORBEWERTET.
+
+s4-digest-telegram.json v2 sortiert je Profil nach Vorscore und zeigt Belegdichte, Lagestufe, Deckelstatus und Gesamtaufwand. Kopfzeile nennt die Anzahl ohne Vorbewertung.
