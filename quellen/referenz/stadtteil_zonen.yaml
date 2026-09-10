@@ -1,0 +1,1211 @@
+hinweis: Zuordnung Stadtteil -> Immobilienrichtwertzonen ueber den Zonennamen (gesetzt 10.09.2026, Geometrie-Pruefung mit
+  Stadtteilgrenzen offen). Teilmarkt 1 = Eigentumswohnungen, 2 = Ein-/Zweifamilienhaeuser. Referenzband je Stadtteil = min..max
+  der Zonen, Referenzwert = Median.
+stadtteile:
+  Altstadt-Nord:
+    etw:
+      zonen:
+      - wnum: '103701'
+        name: Eigelstein
+        imrw: 4640
+      - wnum: '103702'
+        name: Altstadt Nord
+        imrw: 5240
+      band:
+      - 4640
+      - 5240
+      median: 4940.0
+  Altstadt-Süd:
+    etw:
+      zonen:
+      - wnum: '101701'
+        name: Altstadt Süd
+        imrw: 4610
+      - wnum: '101702'
+        name: Severins-Viertel
+        imrw: 4990
+      - wnum: '101703'
+        name: Rheinauhafen
+        imrw: 10400
+      band:
+      - 4610
+      - 10400
+      median: 4990
+  Bayenthal:
+    etw:
+      zonen:
+      - wnum: '201701'
+        name: Bayenthal
+        imrw: 4800
+      band:
+      - 4800
+      - 4800
+      median: 4800
+    haus:
+      zonen:
+      - wnum: '202601'
+        name: Marienburg / Bayenthal Süd
+        imrw: 11700
+      band:
+      - 11700
+      - 11700
+      median: 11700
+  Bickendorf:
+    haus:
+      zonen:
+      - wnum: '403601'
+        name: Bickendorf
+        imrw: 5800
+      band:
+      - 5800
+      - 5800
+      median: 5800
+  Bilderstöckchen:
+    etw:
+      zonen:
+      - wnum: '507701'
+        name: Bilderstöckchen
+        imrw: 3600
+      band:
+      - 3600
+      - 3600
+      median: 3600
+    haus:
+      zonen:
+      - wnum: '507601'
+        name: Bilderstöckchen
+        imrw: 4300
+      band:
+      - 4300
+      - 4300
+      median: 4300
+  Blumenberg:
+    haus:
+      zonen:
+      - wnum: '610601'
+        name: Blumenberg
+        imrw: 3600
+      band:
+      - 3600
+      - 3600
+      median: 3600
+  Bocklemünd:
+    haus:
+      zonen:
+      - wnum: '405601'
+        name: Bocklemünd / Mengenich
+        imrw: 3600
+      band:
+      - 3600
+      - 3600
+      median: 3600
+  Bocklemünd/Mengenich:
+    haus:
+      zonen:
+      - wnum: '405601'
+        name: Bocklemünd / Mengenich
+        imrw: 3600
+      band:
+      - 3600
+      - 3600
+      median: 3600
+  Braunsfeld:
+    etw:
+      zonen:
+      - wnum: '304701'
+        name: Braunsfeld Nord
+        imrw: 4530
+      - wnum: '303702'
+        name: Braunsfeld Süd
+        imrw: 5140
+      band:
+      - 4530
+      - 5140
+      median: 4835.0
+    haus:
+      zonen:
+      - wnum: '303601'
+        name: Lindenthal / Braunsfeld Süd
+        imrw: 7500
+      band:
+      - 7500
+      - 7500
+      median: 7500
+  Brück:
+    haus:
+      zonen:
+      - wnum: '807601'
+        name: Brück
+        imrw: 4300
+      band:
+      - 4300
+      - 4300
+      median: 4300
+  Buchheim:
+    etw:
+      zonen:
+      - wnum: '903701'
+        name: Buchheim
+        imrw: 3130
+      band:
+      - 3130
+      - 3130
+      median: 3130
+    haus:
+      zonen:
+      - wnum: '903601'
+        name: Buchheim
+        imrw: 3400
+      band:
+      - 3400
+      - 3400
+      median: 3400
+  Chorweiler:
+    haus:
+      zonen:
+      - wnum: '609601'
+        name: Chorweiler
+        imrw: 3400
+      band:
+      - 3400
+      - 3400
+      median: 3400
+  Dellbrück:
+    haus:
+      zonen:
+      - wnum: '905602'
+        name: Dellbrück / Holweide
+        imrw: 3500
+      - wnum: '905603'
+        name: Dellbrück Süd
+        imrw: 4400
+      - wnum: '905601'
+        name: Dellbrück West
+        imrw: 4400
+      band:
+      - 3500
+      - 4400
+      median: 4400
+  Deutz:
+    etw:
+      zonen:
+      - wnum: '105701'
+        name: Deutz
+        imrw: 4780
+      band:
+      - 4780
+      - 4780
+      median: 4780
+  Dünnwald:
+    haus:
+      zonen:
+      - wnum: '906604'
+        name: Höhenhaus / Dünnwald
+        imrw: 3200
+      - wnum: '907601'
+        name: Dünnwald West
+        imrw: 3800
+      - wnum: '907602'
+        name: Dünnwald Ost
+        imrw: 4100
+      band:
+      - 3200
+      - 4100
+      median: 3800
+  Ehrenfeld:
+    etw:
+      zonen:
+      - wnum: '402703'
+        name: Ehrenfeld Kanalstraße
+        imrw: 3610
+      - wnum: '401701'
+        name: Ehrenfeld
+        imrw: 4500
+      - wnum: '402702'
+        name: Ehrenfeld Lukasstraße
+        imrw: 4610
+      - wnum: '401703'
+        name: Ehrenfeld West
+        imrw: 4810
+      - wnum: '401702'
+        name: Ehrenfeld Süd
+        imrw: 4900
+      band:
+      - 3610
+      - 4900
+      median: 4610
+  Eil:
+    etw:
+      zonen:
+      - wnum: '705701'
+        name: Eil/Porz Ost/Urbach
+        imrw: 2830
+      band:
+      - 2830
+      - 2830
+      median: 2830
+    haus:
+      zonen:
+      - wnum: '705601'
+        name: Eil / Finkenberg / Porz / Urbach / Elsdorf
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Elsdorf:
+    haus:
+      zonen:
+      - wnum: '705601'
+        name: Eil / Finkenberg / Porz / Urbach / Elsdorf
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Ensen:
+    etw:
+      zonen:
+      - wnum: '702701'
+        name: Westhoven/Ensen
+        imrw: 2770
+      band:
+      - 2770
+      - 2770
+      median: 2770
+    haus:
+      zonen:
+      - wnum: '702601'
+        name: Westhoven / Ensen
+        imrw: 3900
+      band:
+      - 3900
+      - 3900
+      median: 3900
+  Esch/Auweiler:
+    haus:
+      zonen:
+      - wnum: '607602'
+        name: Auweiler
+        imrw: 3700
+      - wnum: '607601'
+        name: Esch
+        imrw: 3700
+      band:
+      - 3700
+      - 3700
+      median: 3700.0
+  Finkenberg:
+    haus:
+      zonen:
+      - wnum: '705601'
+        name: Eil / Finkenberg / Porz / Urbach / Elsdorf
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Flittard:
+    haus:
+      zonen:
+      - wnum: '909601'
+        name: Flittard
+        imrw: 4200
+      band:
+      - 4200
+      - 4200
+      median: 4200
+  Godorf:
+    haus:
+      zonen:
+      - wnum: '211601'
+        name: Godorf
+        imrw: 2800
+      band:
+      - 2800
+      - 2800
+      median: 2800
+  Grengel:
+    etw:
+      zonen:
+      - wnum: '710701'
+        name: Wahn/Wahnheide/Grengel
+        imrw: 2720
+      band:
+      - 2720
+      - 2720
+      median: 2720
+    haus:
+      zonen:
+      - wnum: '710601'
+        name: Grengel / Wahnheide / Wahn / Lind
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Heimersdorf:
+    haus:
+      zonen:
+      - wnum: '604601'
+        name: Heimersdorf
+        imrw: 3800
+      band:
+      - 3800
+      - 3800
+      median: 3800
+  Heumar:
+    haus:
+      zonen:
+      - wnum: '808601'
+        name: Rath / Heumar
+        imrw: 3700
+      band:
+      - 3700
+      - 3700
+      median: 3700
+  Holweide:
+    etw:
+      zonen:
+      - wnum: '904701'
+        name: Holweide
+        imrw: 3040
+      band:
+      - 3040
+      - 3040
+      median: 3040
+    haus:
+      zonen:
+      - wnum: '905602'
+        name: Dellbrück / Holweide
+        imrw: 3500
+      band:
+      - 3500
+      - 3500
+      median: 3500
+  Humboldt/Gremberg:
+    etw:
+      zonen:
+      - wnum: '801701'
+        name: Humboldt/Gremberg
+        imrw: 3010
+      band:
+      - 3010
+      - 3010
+      median: 3010
+  Höhenberg:
+    etw:
+      zonen:
+      - wnum: '804701'
+        name: Höhenberg/Vingst
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Höhenhaus:
+    haus:
+      zonen:
+      - wnum: '906604'
+        name: Höhenhaus / Dünnwald
+        imrw: 3200
+      - wnum: '906603'
+        name: Höhenhaus West
+        imrw: 3400
+      - wnum: '906601'
+        name: Höhenhaus
+        imrw: 3600
+      - wnum: '906602'
+        name: Höhenhaus Süd
+        imrw: 3600
+      band:
+      - 3200
+      - 3600
+      median: 3500.0
+  Immendorf:
+    haus:
+      zonen:
+      - wnum: '212601'
+        name: Immendorf
+        imrw: 3400
+      band:
+      - 3400
+      - 3400
+      median: 3400
+  Junkersdorf:
+    etw:
+      zonen:
+      - wnum: '306702'
+        name: Stüttgerhofsweg
+        imrw: 3010
+      - wnum: '306701'
+        name: Junkersdorf
+        imrw: 4280
+      band:
+      - 3010
+      - 4280
+      median: 3645.0
+    haus:
+      zonen:
+      - wnum: '306601'
+        name: Junkersdorf I
+        imrw: 6200
+      - wnum: '306602'
+        name: Junkersdorf II
+        imrw: 7900
+      - wnum: '306603'
+        name: Junkersdorf III
+        imrw: 9100
+      - wnum: '306604'
+        name: Junkersdorf IIII
+        imrw: 9500
+      band:
+      - 6200
+      - 9500
+      median: 8500.0
+  Kalk:
+    etw:
+      zonen:
+      - wnum: '802701'
+        name: Kalk
+        imrw: 3060
+      band:
+      - 3060
+      - 3060
+      median: 3060
+  Klettenberg:
+    etw:
+      zonen:
+      - wnum: '301701'
+        name: Klettenberg
+        imrw: 4770
+      band:
+      - 4770
+      - 4770
+      median: 4770
+    haus:
+      zonen:
+      - wnum: '301602'
+        name: Klettenberg
+        imrw: 6700
+      band:
+      - 6700
+      - 6700
+      median: 6700
+  Langel:
+    haus:
+      zonen:
+      - wnum: '715601'
+        name: Langel
+        imrw: 3900
+      band:
+      - 3900
+      - 3900
+      median: 3900
+  Lind:
+    haus:
+      zonen:
+      - wnum: '710601'
+        name: Grengel / Wahnheide / Wahn / Lind
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Lindenthal:
+    etw:
+      zonen:
+      - wnum: '303701'
+        name: Lindenthal
+        imrw: 5190
+      band:
+      - 5190
+      - 5190
+      median: 5190
+    haus:
+      zonen:
+      - wnum: '303601'
+        name: Lindenthal / Braunsfeld Süd
+        imrw: 7500
+      band:
+      - 7500
+      - 7500
+      median: 7500
+  Lindweiler:
+    haus:
+      zonen:
+      - wnum: '605601'
+        name: Lindweiler
+        imrw: 3700
+      band:
+      - 3700
+      - 3700
+      median: 3700
+  Longerich:
+    haus:
+      zonen:
+      - wnum: '506601'
+        name: Longerich
+        imrw: 4600
+      band:
+      - 4600
+      - 4600
+      median: 4600
+  Lövenich:
+    haus:
+      zonen:
+      - wnum: '308601'
+        name: Lövenich
+        imrw: 4500
+      band:
+      - 4500
+      - 4500
+      median: 4500
+  Marienburg:
+    etw:
+      zonen:
+      - wnum: '202701'
+        name: Marienburg
+        imrw: 5930
+      band:
+      - 5930
+      - 5930
+      median: 5930
+    haus:
+      zonen:
+      - wnum: '202601'
+        name: Marienburg / Bayenthal Süd
+        imrw: 11700
+      band:
+      - 11700
+      - 11700
+      median: 11700
+  Mauenheim:
+    etw:
+      zonen:
+      - wnum: '502701'
+        name: Mauenheim/Rennbahn-Viertel
+        imrw: 3750
+      band:
+      - 3750
+      - 3750
+      median: 3750
+    haus:
+      zonen:
+      - wnum: '502601'
+        name: Mauenheim
+        imrw: 4500
+      band:
+      - 4500
+      - 4500
+      median: 4500
+  Mengenich:
+    haus:
+      zonen:
+      - wnum: '405601'
+        name: Bocklemünd / Mengenich
+        imrw: 3600
+      band:
+      - 3600
+      - 3600
+      median: 3600
+  Merheim:
+    etw:
+      zonen:
+      - wnum: '806701'
+        name: Merheim
+        imrw: 3230
+      band:
+      - 3230
+      - 3230
+      median: 3230
+    haus:
+      zonen:
+      - wnum: '806601'
+        name: Merheim
+        imrw: 3800
+      band:
+      - 3800
+      - 3800
+      median: 3800
+  Meschenich:
+    haus:
+      zonen:
+      - wnum: '213601'
+        name: Meschenich
+        imrw: 2800
+      band:
+      - 2800
+      - 2800
+      median: 2800
+  Mülheim:
+    etw:
+      zonen:
+      - wnum: '901701'
+        name: Mülheim
+        imrw: 3480
+      - wnum: '901702'
+        name: Mülheim West
+        imrw: 3810
+      band:
+      - 3480
+      - 3810
+      median: 3645.0
+  Müngersdorf:
+    haus:
+      zonen:
+      - wnum: '305601'
+        name: Müngersdorf Nord
+        imrw: 7000
+      band:
+      - 7000
+      - 7000
+      median: 7000
+  Neubrück:
+    etw:
+      zonen:
+      - wnum: '809701'
+        name: Neubrück
+        imrw: 2590
+      band:
+      - 2590
+      - 2590
+      median: 2590
+    haus:
+      zonen:
+      - wnum: '809601'
+        name: Neubrück
+        imrw: 3700
+      band:
+      - 3700
+      - 3700
+      median: 3700
+  Neuehrenfeld:
+    etw:
+      zonen:
+      - wnum: '402701'
+        name: Neuehrenfeld
+        imrw: 4840
+      band:
+      - 4840
+      - 4840
+      median: 4840
+    haus:
+      zonen:
+      - wnum: '402601'
+        name: Neuehrenfeld
+        imrw: 5200
+      band:
+      - 5200
+      - 5200
+      median: 5200
+  Neustadt-Nord:
+    etw:
+      zonen:
+      - wnum: '104702'
+        name: Agnes-Viertel Ost
+        imrw: 4760
+      - wnum: '104703'
+        name: Gerichtsviertel
+        imrw: 5390
+      - wnum: '104701'
+        name: Belgisches Viertel
+        imrw: 5550
+      band:
+      - 4760
+      - 5550
+      median: 5390
+  Neustadt-Süd:
+    etw:
+      zonen:
+      - wnum: '102703'
+        name: Rathenau-Viertel
+        imrw: 5010
+      - wnum: '102702'
+        name: Volksgarten-Viertel
+        imrw: 5070
+      - wnum: '102701'
+        name: Südstadt
+        imrw: 5760
+      band:
+      - 5010
+      - 5760
+      median: 5070
+  Niehl:
+    etw:
+      zonen:
+      - wnum: '504701'
+        name: Niehl
+        imrw: 3470
+      - wnum: '504702'
+        name: Nordpark
+        imrw: 3760
+      band:
+      - 3470
+      - 3760
+      median: 3615.0
+  Nippes:
+    etw:
+      zonen:
+      - wnum: '501701'
+        name: Nippes
+        imrw: 4650
+      band:
+      - 4650
+      - 4650
+      median: 4650
+  Ossendorf:
+    haus:
+      zonen:
+      - wnum: '406601'
+        name: Ossendorf
+        imrw: 3900
+      band:
+      - 3900
+      - 3900
+      median: 3900
+  Ostheim:
+    etw:
+      zonen:
+      - wnum: '805701'
+        name: Ostheim
+        imrw: 2520
+      band:
+      - 2520
+      - 2520
+      median: 2520
+    haus:
+      zonen:
+      - wnum: '805601'
+        name: Ostheim
+        imrw: 3500
+      band:
+      - 3500
+      - 3500
+      median: 3500
+  Pesch:
+    etw:
+      zonen:
+      - wnum: '606701'
+        name: Pesch
+        imrw: 2820
+      band:
+      - 2820
+      - 2820
+      median: 2820
+    haus:
+      zonen:
+      - wnum: '606601'
+        name: Pesch
+        imrw: 3900
+      band:
+      - 3900
+      - 3900
+      median: 3900
+  Poll:
+    haus:
+      zonen:
+      - wnum: '701602'
+        name: Poll Süd
+        imrw: 4300
+      - wnum: '701601'
+        name: Poll Nord
+        imrw: 4500
+      band:
+      - 4300
+      - 4500
+      median: 4400.0
+  Porz:
+    etw:
+      zonen:
+      - wnum: '706701'
+        name: Porz/Zündorf Nord
+        imrw: 2810
+      - wnum: '705701'
+        name: Eil/Porz Ost/Urbach
+        imrw: 2830
+      band:
+      - 2810
+      - 2830
+      median: 2820.0
+    haus:
+      zonen:
+      - wnum: '705601'
+        name: Eil / Finkenberg / Porz / Urbach / Elsdorf
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Rath:
+    haus:
+      zonen:
+      - wnum: '808601'
+        name: Rath / Heumar
+        imrw: 3700
+      band:
+      - 3700
+      - 3700
+      median: 3700
+  Rath/Heumar:
+    haus:
+      zonen:
+      - wnum: '808601'
+        name: Rath / Heumar
+        imrw: 3700
+      band:
+      - 3700
+      - 3700
+      median: 3700
+  Riehl:
+    etw:
+      zonen:
+      - wnum: '503701'
+        name: Riehl Niederländer Viertel
+        imrw: 3930
+      - wnum: '503702'
+        name: Riehl Süd
+        imrw: 4530
+      band:
+      - 3930
+      - 4530
+      median: 4230.0
+  Rodenkirchen:
+    etw:
+      zonen:
+      - wnum: '208701'
+        name: Rodenkirchen
+        imrw: 3950
+      band:
+      - 3950
+      - 3950
+      median: 3950
+    haus:
+      zonen:
+      - wnum: '208602'
+        name: Rodenkirchen Ost
+        imrw: 5600
+      - wnum: '208601'
+        name: Rodenkirchen Nord
+        imrw: 6000
+      - wnum: '208603'
+        name: Rodenkirchen Süd
+        imrw: 8300
+      band:
+      - 5600
+      - 8300
+      median: 6000
+  Roggendorf/Thenhoven:
+    haus:
+      zonen:
+      - wnum: '611601'
+        name: Roggendorf / Thenhoven
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Rondorf:
+    haus:
+      zonen:
+      - wnum: '206601'
+        name: Rondorf
+        imrw: 4200
+      band:
+      - 4200
+      - 4200
+      median: 4200
+  Seeberg:
+    haus:
+      zonen:
+      - wnum: '603601'
+        name: Seeberg
+        imrw: 4200
+      band:
+      - 4200
+      - 4200
+      median: 4200
+  Stammheim:
+    haus:
+      zonen:
+      - wnum: '908601'
+        name: Stammheim Nord
+        imrw: 3200
+      - wnum: '908602'
+        name: Stammheim Süd
+        imrw: 3500
+      band:
+      - 3200
+      - 3500
+      median: 3350.0
+  Sülz:
+    etw:
+      zonen:
+      - wnum: '302702'
+        name: Sülz Justiz Viertel
+        imrw: 3510
+      - wnum: '302701'
+        name: Sülz
+        imrw: 5250
+      band:
+      - 3510
+      - 5250
+      median: 4380.0
+    haus:
+      zonen:
+      - wnum: '302602'
+        name: Sülz
+        imrw: 7000
+      band:
+      - 7000
+      - 7000
+      median: 7000
+  Sürth:
+    etw:
+      zonen:
+      - wnum: '210701'
+        name: Sürth/Weiß
+        imrw: 4440
+      band:
+      - 4440
+      - 4440
+      median: 4440
+    haus:
+      zonen:
+      - wnum: '210601'
+        name: Sürth
+        imrw: 4700
+      band:
+      - 4700
+      - 4700
+      median: 4700
+  Urbach:
+    etw:
+      zonen:
+      - wnum: '707701'
+        name: Urbach Süd
+        imrw: 2270
+      - wnum: '705701'
+        name: Eil/Porz Ost/Urbach
+        imrw: 2830
+      band:
+      - 2270
+      - 2830
+      median: 2550.0
+    haus:
+      zonen:
+      - wnum: '705601'
+        name: Eil / Finkenberg / Porz / Urbach / Elsdorf
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Vingst:
+    etw:
+      zonen:
+      - wnum: '804701'
+        name: Höhenberg/Vingst
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Vogelsang:
+    haus:
+      zonen:
+      - wnum: '404601'
+        name: Vogelsang
+        imrw: 5200
+      band:
+      - 5200
+      - 5200
+      median: 5200
+  Volkhoven/Weiler:
+    haus:
+      zonen:
+      - wnum: '608601'
+        name: Volkhoven / Weiler
+        imrw: 3500
+      band:
+      - 3500
+      - 3500
+      median: 3500
+  Wahn:
+    etw:
+      zonen:
+      - wnum: '710701'
+        name: Wahn/Wahnheide/Grengel
+        imrw: 2720
+      band:
+      - 2720
+      - 2720
+      median: 2720
+    haus:
+      zonen:
+      - wnum: '710601'
+        name: Grengel / Wahnheide / Wahn / Lind
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Wahnheide:
+    etw:
+      zonen:
+      - wnum: '710701'
+        name: Wahn/Wahnheide/Grengel
+        imrw: 2720
+      band:
+      - 2720
+      - 2720
+      median: 2720
+    haus:
+      zonen:
+      - wnum: '710601'
+        name: Grengel / Wahnheide / Wahn / Lind
+        imrw: 3200
+      band:
+      - 3200
+      - 3200
+      median: 3200
+  Weiden:
+    etw:
+      zonen:
+      - wnum: '307702'
+        name: Weiden Süd
+        imrw: 3090
+      - wnum: '307701'
+        name: Weiden Nord
+        imrw: 3390
+      band:
+      - 3090
+      - 3390
+      median: 3240.0
+    haus:
+      zonen:
+      - wnum: '307601'
+        name: Weiden Nord
+        imrw: 5000
+      - wnum: '307603'
+        name: Weiden Ost
+        imrw: 5400
+      - wnum: '307602'
+        name: Weiden West
+        imrw: 5400
+      band:
+      - 5000
+      - 5400
+      median: 5400
+  Weidenpesch:
+    etw:
+      zonen:
+      - wnum: '505701'
+        name: Weidenpesch
+        imrw: 3030
+      - wnum: '502701'
+        name: Mauenheim/Rennbahn-Viertel
+        imrw: 3750
+      band:
+      - 3030
+      - 3750
+      median: 3390.0
+  Weiß:
+    etw:
+      zonen:
+      - wnum: '210701'
+        name: Sürth/Weiß
+        imrw: 4440
+      band:
+      - 4440
+      - 4440
+      median: 4440
+    haus:
+      zonen:
+      - wnum: '209601'
+        name: Weiß
+        imrw: 5900
+      band:
+      - 5900
+      - 5900
+      median: 5900
+  Westhoven:
+    etw:
+      zonen:
+      - wnum: '702701'
+        name: Westhoven/Ensen
+        imrw: 2770
+      band:
+      - 2770
+      - 2770
+      median: 2770
+    haus:
+      zonen:
+      - wnum: '702601'
+        name: Westhoven / Ensen
+        imrw: 3900
+      band:
+      - 3900
+      - 3900
+      median: 3900
+  Widdersdorf:
+    haus:
+      zonen:
+      - wnum: '309601'
+        name: Widdersdorf Alt
+        imrw: 4800
+      - wnum: '309602'
+        name: Widdersdorf Neu
+        imrw: 7200
+      band:
+      - 4800
+      - 7200
+      median: 6000.0
+  Worringen:
+    haus:
+      zonen:
+      - wnum: '612602'
+        name: Worringen Ost
+        imrw: 3400
+      - wnum: '612601'
+        name: Worringen West
+        imrw: 3400
+      band:
+      - 3400
+      - 3400
+      median: 3400.0
+  Zollstock:
+    etw:
+      zonen:
+      - wnum: '205702'
+        name: Zollstock Vorgebirgspark
+        imrw: 3520
+      - wnum: '205701'
+        name: Zollstock
+        imrw: 4260
+      band:
+      - 3520
+      - 4260
+      median: 3890.0
+  Zündorf:
+    etw:
+      zonen:
+      - wnum: '706701'
+        name: Porz/Zündorf Nord
+        imrw: 2810
+      - wnum: '714701'
+        name: Zündorf
+        imrw: 3260
+      band:
+      - 2810
+      - 3260
+      median: 3035.0
+    haus:
+      zonen:
+      - wnum: '714601'
+        name: Zündorf
+        imrw: 3600
+      band:
+      - 3600
+      - 3600
+      median: 3600

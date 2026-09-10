@@ -1,0 +1,74 @@
+# Umrechnungskoeffizienten zu den Immobilienrichtwerten Koeln, Stichtag 01.01.2026.
+# Abgeschrieben aus den "Oertlichen Fachinformationen" des Gutachterausschusses Koeln
+# (LGDIR_1_0511400_2026.pdf Eigentumswohnungen, LGDIR_2_0511400_2026.pdf Ein-/Zweifamilienhaeuser),
+# identisch in Grundstuecksmarktbericht 2026 Kapitel 5.1.3 und 6.1.2. Belege: irw_nrw_2026, gmb_koeln_2026 (manifest.yaml).
+# Anwendung (Beispiel des Gutachterausschusses): angepasster IRW = IRW x (Produkt UK Bewertungsobjekt / Produkt UK Normobjekt).
+# Zwischen Tabellenwerten darf interpoliert werden. Der Immobilienpreis ist eine Rechengroesse, kein Verkehrswert.
+version: 2026-01-01
+teilmarkt_1_eigentumswohnungen:
+  normobjekt_hinweis: "Normobjekt je Zone in irw_koeln_2026_zonen.json (BJ, WHNFL, MTYP); Mehrfamilienhaus, teilmodernisiert, unvermietet, mittlere Ausstattung, 1. bis 2. OG"
+  kauffaelle_basis: { preis_je_qm: [1000, 13000], wohnflaeche_qm: [25, 150], baujahr_bis: 2022 }
+  baujahr:            # Klasse: Koeffizient
+    "1800-1920": 1.22
+    "1921-1940": 1.03
+    "1941-1965": 1.07
+    "1966-1980": 1.00
+    "1981-1990": 1.09
+    "1991-2000": 1.20
+    "2001-2010": 1.32
+    "2011-2022": 1.33
+  geschosse_im_objekt: { "1-8": 1.00, "ab 9": 0.91 }
+  einheiten_in_anlage: { "2-6": 1.01, "7-12": 1.01, "13-30": 1.00, "31-65": 0.98, "ab 66": 0.94 }
+  wohnflaeche:
+    "25-40": 1.02
+    "41-80": 1.00
+    "81-120": 1.02
+    "121-150": 1.07
+  geschosslage: { "EG": 0.98, "1.-2. OG": 1.00, "3.-5. OG": 1.03, "ab 6. OG": 1.00 }
+  mietsituation: { vermietet: 0.94, unvermietet: 1.00 }
+  ausstattung: { einfach: 0.87, mittel: 1.00, gehoben: 1.23 }
+  preisindex_halbjahr:   # 1. Hj 2020 = 100; links = Stadtbezirke 1-6 mit Deutz, rechts = 7-9 ohne Deutz
+    "2024-2": { links: 117, rechts: 120 }
+    "2025-1": { links: 118, rechts: 121 }
+    "2025-2": { links: 120, rechts: 124 }
+teilmarkt_2_ein_zweifamilienhaeuser:
+  normobjekt_hinweis: "Normobjekt je Zone in irw_koeln_2026_zonen.json (BJ, WHNFL, FLAE); Einfamilienhaus, teilmodernisiert, unvermietet, mittlerer Standard, voll unterkellert"
+  kauffaelle_basis: { preis_je_qm: [1000, 17000], baujahr: [1870, 2022], grundstueck_qm: [100, 2400], wohnflaeche_qm: [70, 400] }
+  baujahr:
+    "1870-1920": 0.95
+    "1921-1940": 1.05
+    "1941-1965": 1.00
+    "1966-1980": 0.98
+    "1981-1990": 1.02
+    "1991-2000": 1.06
+    "2001-2010": 1.13
+    "2011-2022": 1.25
+  grundstuecksgroesse:
+    "100-200": 0.96
+    "201-300": 1.00
+    "301-400": 1.04
+    "401-500": 1.08
+    "501-700": 1.17
+    "701-900": 1.28
+    "901-2500": 1.52
+  wohnflaeche:
+    "70-90": 1.18
+    "91-110": 1.08
+    "111-130": 1.00
+    "131-150": 0.95
+    "151-170": 0.88
+    "171-190": 0.85
+    "191-400": 0.80
+  mietsituation: { unvermietet: 1.00, vermietet: 0.95 }
+  gebaeudestandard: { einfach: 0.90, mittel: 1.00, gehoben: 1.14 }
+  keller: { vorhanden: 1.00, nicht_vorhanden: 0.95 }
+  gebaeudeart: { einfamilienhaus: 1.00, zweifamilienhaus: 0.96 }
+  ergaenzende_gebaeudeart: { freistehend: 1.00, doppelhaushaelfte: 1.00, reihenendhaus: 1.00, reihenmittelhaus: 1.00 }
+  preisindex_halbjahr:
+    "2024-2": { links: 104, rechts: 106 }
+    "2025-1": { links: 102, rechts: 109 }
+    "2025-2": { links: 107, rechts: 112 }
+liegenschaftszinssaetze_2025:   # GMB 2026 Kap. 5.5 und 6.1.4, Stadtgebiet Koeln, Mittelwerte
+  wohnungseigentum_vermietet: { satz_pct: 1.9, stdabw: 1.1, kauffaelle: 259 }
+  ein_zweifamilienhaus_vermietet: { satz_pct: 1.6, stdabw: 0.4, kauffaelle: 15 }
+  mietwohnhaus: { satz_pct: 2.8, stdabw: 0.9, kauffaelle: 80 }

@@ -1,3 +1,51 @@
 # Belegschrank. Je Beleg: id, titel, url, abruf, stichtag, sha256, lizenz, gueltig_bis, zugriffsweg
-# Wird in Phase 1a gefüllt. Eine Zahl ohne Manifest-id fällt nach R18 durch.
-belege: []
+# Eine Zahl ohne Manifest-id faellt nach R18 durch. Ableitungen (Dateien unter quellen/referenz/) nennen ihre Beleg-id.
+belege:
+  - id: irw_nrw_2026
+    titel: "Immobilienrichtwerte NRW, Stichtag 01.01.2026, Shapefile EPSG:25832 (IRW_2026_Polygon) mit Fachinformationen"
+    herausgeber: "Der Obere Gutachterausschuss fuer Grundstueckswerte im Land Nordrhein-Westfalen c/o Bezirksregierung Koeln"
+    url: https://www.opengeodata.nrw.de/produkte/infrastruktur_bauen_wohnen/boris/IRW/IRW_EPSG25832_Shape.zip
+    abruf: 2026-09-10
+    stichtag: 2026-01-01
+    erstellungsdatum_datensatz: 2026-09-10
+    sha256: e93cf4b3da124e6b3511034d13f3ac393f5a614f16f02dbb74e5cf803077898b
+    groesse_bytes: 91906299
+    lizenz: "Datenlizenz Deutschland Zero 2.0 (dl-de/zero-2-0)"
+    gueltig_bis: 2027-01-01
+    zugriffsweg: "Download durch Claude in der Cowork-Sitzung (offene Daten, kein Portalabruf). Datei nicht im Repository (92 MB); Auszug Koeln unter quellen/referenz/."
+    ableitungen:
+      - quellen/referenz/irw_koeln_2026_zonen.json     # 128 Zonen Koeln (GESL 05315000): 59 Teilmarkt 1 ETW, 69 Teilmarkt 2 EZFH, mit Normobjekt
+      - quellen/referenz/stadtteil_zonen.yaml          # Zuordnung Stadtteil -> Zonen ueber Namen, Band und Median
+    teil_belege:
+      - datei: Fachinformationen/LGDIR_1_0511400_2026.pdf
+        titel: "Oertliche Fachinformationen Immobilienrichtwerte Koeln, Teilmarkt Eigentumswohnungen, Stichtag 01.01.2026"
+        sha256: d0eb4c064b8916ee77651c3c85b4cecc82b2071403c6e188a8d16dee54df256d
+        url: https://www.boris.nrw.de/borisfachdaten/lgd/irw/2026/LGDIR_1_0511400_2026.pdf
+      - datei: Fachinformationen/LGDIR_2_0511400_2026.pdf
+        titel: "Oertliche Fachinformationen Immobilienrichtwerte Koeln, Teilmarkt Ein- und Zweifamilienhaeuser, Stichtag 01.01.2026"
+        sha256: 24dc8fc8f1308adf32077ea689a2051b596693bc8c430a027239a5dcec82e6be
+        url: https://www.boris.nrw.de/borisfachdaten/lgd/irw/2026/LGDIR_2_0511400_2026.pdf
+    ableitungen_fachinfo:
+      - quellen/referenz/irw_koeln_2026_koeffizienten.yaml   # Umrechnungskoeffizienten, Preisindizes (abgeschrieben, Stichprobe gegen GMB Kap. 5.1.3 und 6.1.2 geprueft)
+  - id: gmb_koeln_2026
+    titel: "Grundstuecksmarktbericht 2026 fuer die Stadt Koeln, Digitalversion (168 Seiten)"
+    herausgeber: "Der Gutachterausschuss fuer Grundstueckswerte in der Stadt Koeln"
+    url: https://www.gars.nrw/images/user/GA_K%C3%B6ln/GMB2026_Digitalversion.pdf
+    abruf: 2026-09-10
+    abgerufen_von: Christoph (Download, Upload in die Cowork-Sitzung)
+    stichtag: 2026-01-01
+    berichtszeitraum: 2025
+    sha256: f7cb9e196ba2c9a6c8bc251cfb6b6626e3aff1c1e57b3bdbdb5f821855f51d07
+    groesse_bytes: 11227421
+    pdf_erstellt: 2026-03-31
+    lizenz: "Veroeffentlichung des Gutachterausschusses; Nutzung fuer eigene Wertermittlung, Weitergabe der PDF nicht ins Repository"
+    gueltig_bis: 2027-03-31
+    zugriffsweg: "PDF lokal bei Christoph; Auszuege als JSON unter quellen/referenz/"
+    ableitungen:
+      - quellen/referenz/gmb2026_etw_stadtteile.json    # Kap. 6.1.1 Kaufpreisspannen Eigentumswohnungen je Stadtteil (Weiterverkauf, Umwandlung, Neubau, Baujahrklassen), 273 Zeilen
+      - quellen/referenz/gmb2026_haus_stadtteile.json   # Kap. 5.1.2 Kaufpreisspannen Ein-/Zweifamilienhaeuser je Stadtteil und Gebaeudeart, 127 Zeilen
+      - quellen/referenz/parse_gmb.py                   # Parser mit Stichproben (alle bestanden, 10.09.2026)
+    kennzahlen:
+      liegenschaftszins_wohnungseigentum_vermietet_2025_pct: 1.9    # Kap. 6.1.4, 259 Kauffaelle, Stdabw 1.1
+      liegenschaftszins_ezfh_vermietet_2025_pct: 1.6                # Kap. 5.1.6, 15 Kauffaelle, Stdabw 0.4
+      liegenschaftszins_mietwohnhaus_2025_pct: 2.8                  # Kap. 5.2.3, 80 Kauffaelle
