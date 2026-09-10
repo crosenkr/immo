@@ -7,7 +7,7 @@ Die Zahl in Klammern nennt die Kapitel, in denen die Regel wirkt.
 - **R1 Belegklassen** — nur B0 bis B2 zählen, jeder B1- und B2-Wert führt ein Belegzitat, Schätzung ist kein Feldwert. (1, 2, 3, 4, 6)
 - **R2 Stichtagspflicht** — jede Zahl trägt ein Datum. (1, 3, 4, 6)
 - **R3 Rechnen außerhalb des Modells** — Modell füllt Felder, Rechenschritt protokolliert Parameter, jeder Ankerwert trägt eine Bezugsgröße. (1, 2, 4, 6, 7)
-- **R4 Kaufsummen-Deckel** — eingefrorene Gesamtaufwandsgrenze mit allen vier Nebenkostenposten, einziges Ausschlusskriterium, ausnahmslos. (1, 2, 4, 5, 6, 7)
+- **R4 Kaufsummen-Deckel** — eingefrorene Gesamtaufwandsgrenze je Profil mit allen vier Nebenkostenposten, einziges Ausschlusskriterium, ausnahmslos. Gemessen am **Referenzpreis** (Wohnfläche mal Immobilienrichtwert der Zone, angepasst um die Koeffizienten des Marktberichts), nicht am Angebotspreis; liegt der Angebotspreis über dem Deckel, der Referenzpreis aber darunter, bleibt das Objekt drin und trägt den Status „Verhandlungsfall" mit Zielgebot und Verhandlungsspanne im Dossier. Bis das Referenzband im Belegschrank liegt, gilt der Angebotspreis als Notbehelf und Objekte über dem Deckel erhalten „unvollständig", nicht „ausgeschlossen". (Entscheidung 10.09.2026; 1, 2, 4, 5, 6, 7)
 - **R5 Referenzband** — Quartalsband je Suchgebiet, zur Laufzeit nachschlagen. (1, 3, 4, 6, 7)
 - **R6 Drei Feldzustände** — Wert, „fehlt in der Anzeige", „nicht ermittelbar"; die Schemaprüfung stellt vier der fünf Vetogründe fest. (1, 2, 3, 4, 5, 6)
 - **R7 Lückenquote** — fehlende Angaben senken den Rang. (1, 4, 6)

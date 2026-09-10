@@ -4,6 +4,24 @@ Die einzige gültige Liste offener Punkte. Zu Beginn jeder Sitzung lesen, am End
 
 ## Stand 10.09.2026
 
+### Sitzung 1 (10.09.2026), gefallene Entscheidungen
+- E0 Bauvariante: **V2 voll** (n8n, Cowork als geplante Aufgaben, lokales Modell, GitHub-Briefkasten). Widerrufsbedingung (A0.9): Monatssockel nach acht Wochen über 6 h oder Phase 2 nach 45 h nicht abgenommen, dann Rückfall auf Phase 1a.
+- E1 Objektarten: Profil A vermietete Eigentumswohnung als Kapitalanlage; Profil B Haus zur Eigennutzung.
+- E2 Region: Profil A Ehrenfeld, Neustadt-Nord (Belgisches Viertel, Agnesviertel), Neustadt-Süd (Südstadt), Lindenthal, Sülz, Rodenkirchen, Marienburg. Profil B Ehrenfeld, Lindenthal, Sülz, Rodenkirchen, Marienburg, Junkersdorf. Geofence über Stadtteile-Shapefile Köln. E24 entfällt (nur Köln).
+- E3 Kaufsummen-Deckel (Gesamtaufwand): Profil A 500.000 Euro, Profil B 900.000 Euro; Provisionsannahme 3,57 %; Zinsannahme 3,89 % (Dr. Klein, Stand 09.09.2026, Richtwert). R4 gilt am Referenzpreis, nicht am Angebotspreis (siehe regeln.md).
+- E4 Schwellen: 55 / 35, Belegdichte 0,70 (V2), unverändert bis zur Sortierprobe.
+- E5 Kanäle: Telegram täglich morgens, Home-Assistant-Kachel, E-Mail-Wochenrückschau.
+- E6 Startportal: ImmoScout24. Suchaufträge „A Anlage“ (Eigentumswohnungen, gezeichnetes Gebiet, bis 800.000) und „B Haus“ (bis 1.200.000), Echtzeit per E-Mail, angelegt 10.09.2026. Preisfilter bewusst weit, weil der Deckel am Referenzpreis greift.
+- E7 Postfach: immo@rosenkranz.cologne (ALL-INKL), Plus-Adressierung bestätigt.
+- E30: Sitzung 1 in einem Termin.
+
+### Offen nach Sitzung 1
+- OFFEN: Sortierprobe A0.2 (zwölf Kurzanzeigen Profil A) von Christoph sortieren lassen, Ergebnis versiegeln (A0.3)
+- OFFEN: Live-Beweis: erste Portalmail als .eml an Claude, daraus Parser S1 und profile/profil-a.yaml
+- OFFEN: E8: hat das ImmoScout-Konto die Plus-Adresse angenommen? Sonst Absenderdomain als Routing-Merkmal
+- OFFEN: Punkt 11 der Checkliste (Referenzband: Immobilienrichtwerte TEILMA 1 bis 3, Marktbericht Köln) rückt nach Phase 1b vor, weil R4 am Referenzpreis misst
+- OFFEN: docs/KONZEPT.md von Christoph hochladen (Konnektor überträgt keine 220-KB-Datei)
+
 - 10.09.2026 ERLEDIGT: Postfach immo@rosenkranz.cologne bei ALL-INKL angelegt; Plus-Adressierung geprüft (immo+test@ kommt an, Delivered-To trägt den Tag)
 - 10.09.2026 ERLEDIGT: Repository crosenkr/immo angelegt
 - OFFEN: Ordner Immo/DLQ und Immo/Quarantaene im Postfach anlegen
