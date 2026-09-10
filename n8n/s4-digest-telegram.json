@@ -1,5 +1,5 @@
 {
-  "name": "Immo S4 Digest Telegram (Phase 1a, v2 mit Vorbewertung)",
+  "name": "Immo S4 Digest Telegram (Phase 1a, v3 nur ungemeldete)",
   "nodes": [
     {
       "parameters": {
@@ -33,9 +33,16 @@
         },
         "returnAll": true,
         "filters": {
-          "conditions": []
+          "conditions": [
+            {
+              "keyName": "zustand",
+              "condition": "eq",
+              "keyValue": "vorbewertet"
+            }
+          ]
         },
-        "options": {}
+        "options": {},
+        "matchType": "allConditions"
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -44,12 +51,12 @@
         300
       ],
       "id": "2b7b1c3f-0b80-4c7b-9f00-1d2e3f4a5b61",
-      "name": "objekt lesen",
+      "name": "Ungemeldete Objekte lesen",
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "// S4 Zusteller v2 (Phase 1a): neue Objekte der letzten 24 h, je Profil nach Vorscore sortiert. HTML fuer Telegram.\n// Nur Felder aus der Tabelle, kein Modellaufruf, kein Abruf. Adresse ohne Hausnummer (R19). Grenze 4096 Zeichen -> Teile.\nconst STUNDEN = 24;\nconst grenze = Date.now() - STUNDEN * 3600 * 1000;\nconst esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst eur = n => (typeof n === 'number') ? n.toLocaleString('de-DE') + ' €' : 'k. A.';\nconst zahl = (n, e) => (typeof n === 'number') ? n.toLocaleString('de-DE') + e : 'k. A.';\nconst PROFILNAME = { A: 'Profil A: Anlage-ETW', B: 'Profil B: Haus', unbekannt: 'Ohne Profil' };\nconst DECKEL = { unter_deckel: 'unter Deckel', ueber_deckel_angebotspreis: 'über Deckel (Angebotspreis, unvollständig)', kein_preis: 'Preis fehlt', kein_profil: '' };\n\nconst rows = $input.all().map(i => i.json).filter(j => j && j.objekt_schluessel && String(j.objekt_schluessel).startsWith('is24:'));\nconst neu = rows.filter(j => { const t = Date.parse(j.erfasst_am || ''); return Number.isFinite(t) && t >= grenze; });\nconst ordnung = { A: 0, B: 1, unbekannt: 2 };\nneu.sort((a, b) => (ordnung[a.profil ?? 'unbekannt'] - ordnung[b.profil ?? 'unbekannt']) || ((b.vorscore ?? -1) - (a.vorscore ?? -1)) || ((a.preis_je_qm || 0) - (b.preis_je_qm || 0)));\n\nconst datum = new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });\nconst offen = neu.filter(j => j.zustand === 'neu').length;\nconst kopf = `<b>Immo-Digest ${esc(datum)}</b>\\nNeu in den letzten ${STUNDEN} h: ${neu.length} (Bestand: ${rows.length}).` + (offen ? ` ${offen} noch ohne Vorbewertung.` : '') + `\\nVorscore = Vorstufe aus Anzeigenfeldern, Belegdichte in Klammern. Kein Kaufurteil.`;\n\nconst zeilen = [];\nlet letzter = null;\nfor (const j of neu) {\n  const pr = j.profil ?? 'unbekannt';\n  if (pr !== letzter) { zeilen.push(`\\n<b>${esc(PROFILNAME[pr] || pr)}</b>`); letzter = pr; }\n  const ort = [j.stadtteil, j.strasse].filter(x => x && x !== 'fehlt in der Anzeige').join(', ');\n  const link = j.link ? `<a href=\"${esc(j.link)}\">${esc(j.titel || j.objekt_schluessel)}</a>` : esc(j.titel || j.objekt_schluessel);\n  const score = (typeof j.vorscore === 'number') ? `Vorscore ${j.vorscore} (${String(j.belegdichte ?? 0).replace('.', ',')})` : 'noch ohne Vorbewertung';\n  const lage = j.lage_stufe === 'kernlage' ? 'Kernlage' : (j.lage_stufe === 'im_radius' ? 'im Radius' : '');\n  const deckel = DECKEL[j.deckel_status] || '';\n  const z2 = [score, lage, deckel].filter(Boolean).join(' | ');\n  zeilen.push(`• ${link}\\n  ${esc(ort || 'Lage k. A.')} | ${eur(j.kaufpreis_eur)} | ${zahl(j.wohnflaeche_qm, ' m²')} | ${zahl(j.zimmer, ' Zi.')} | ${zahl(j.preis_je_qm, ' €/m²')}${j.provision_kaeufer_pct === 0 ? ' | provisionsfrei' : ''}\\n  ${esc(z2)}${typeof j.gesamtaufwand_eur === 'number' ? ' | Gesamtaufwand ' + eur(j.gesamtaufwand_eur) : ''}`);\n}\n\nconst MAX = 3900;\nconst teile = [];\nlet akt = kopf;\nfor (const z of zeilen) {\n  if ((akt + '\\n' + z).length > MAX) { teile.push(akt); akt = z; } else { akt += '\\n' + z; }\n}\nteile.push(akt);\nreturn teile.map((text, i) => ({ json: { text, teil: i + 1, teile: teile.length, anzahl_neu: neu.length, anzahl_bestand: rows.length, ohne_vorbewertung: offen, schluessel: neu.map(j => j.objekt_schluessel) } }));\n"
+        "jsCode": "// S4 Zusteller v2 (Phase 1a): neue Objekte der letzten 24 h, je Profil nach Vorscore sortiert. HTML fuer Telegram.\n// Nur Felder aus der Tabelle, kein Modellaufruf, kein Abruf. Adresse ohne Hausnummer (R19). Grenze 4096 Zeichen -> Teile.\nconst esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst eur = n => (typeof n === 'number') ? n.toLocaleString('de-DE') + ' €' : 'k. A.';\nconst zahl = (n, e) => (typeof n === 'number') ? n.toLocaleString('de-DE') + e : 'k. A.';\nconst PROFILNAME = { A: 'Profil A: Anlage-ETW', B: 'Profil B: Haus', unbekannt: 'Ohne Profil' };\nconst DECKEL = { unter_deckel: 'unter Deckel', ueber_deckel_angebotspreis: 'über Deckel (Angebotspreis, unvollständig)', kein_preis: 'Preis fehlt', kein_profil: '' };\n\nconst rows = $input.all().map(i => i.json).filter(j => j && j.objekt_schluessel && String(j.objekt_schluessel).startsWith('is24:'));\nconst neu = rows;   // v3: Eingabe sind nur Objekte mit zustand = vorbewertet (noch nicht gemeldet); nach dem Senden werden sie 'gemeldet'\nconst ordnung = { A: 0, B: 1, unbekannt: 2 };\nconst deckelRang = { unter_deckel: 0, kein_preis: 1, ueber_deckel_angebotspreis: 2 };   // E34 (10.09.2026): kaufbare zuerst, ueber Deckel bleibt sichtbar (R4)\nconst rang = j => deckelRang[j.deckel_status] ?? 3;\nneu.sort((a, b) => (ordnung[a.profil ?? 'unbekannt'] - ordnung[b.profil ?? 'unbekannt']) || (rang(a) - rang(b)) || ((b.vorscore ?? -1) - (a.vorscore ?? -1)) || ((a.preis_je_qm || 0) - (b.preis_je_qm || 0)));\n\nconst datum = new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });\nconst kopf = neu.length ? `<b>Immo-Digest ${esc(datum)}</b>\\nNeu seit dem letzten Digest: ${neu.length}.\\nVorscore = Vorstufe aus Anzeigenfeldern, Belegdichte in Klammern. Kein Kaufurteil.` : `<b>Immo-Digest ${esc(datum)}</b>\\nKeine neuen Objekte seit dem letzten Digest. Sammler und Buchhalter laufen.`;\n\nconst zeilen = [];\nlet letzter = null;\nfor (const j of neu) {\n  const pr = j.profil ?? 'unbekannt';\n  if (pr !== letzter) { zeilen.push(`\\n<b>${esc(PROFILNAME[pr] || pr)}</b>`); letzter = pr; }\n  const ort = [j.stadtteil, j.strasse].filter(x => x && x !== 'fehlt in der Anzeige').join(', ');\n  const link = j.link ? `<a href=\"${esc(j.link)}\">${esc(j.titel || j.objekt_schluessel)}</a>` : esc(j.titel || j.objekt_schluessel);\n  const score = (typeof j.vorscore === 'number') ? `Vorscore ${j.vorscore} (${String(j.belegdichte ?? 0).replace('.', ',')})` : 'noch ohne Vorbewertung';\n  const lage = j.lage_stufe === 'kernlage' ? 'Kernlage' : (j.lage_stufe === 'im_radius' ? 'im Radius' : '');\n  const deckel = DECKEL[j.deckel_status] || '';\n  const z2 = [score, lage, deckel].filter(Boolean).join(' | ');\n  zeilen.push(`• ${link}\\n  ${esc(ort || 'Lage k. A.')} | ${eur(j.kaufpreis_eur)} | ${zahl(j.wohnflaeche_qm, ' m²')} | ${zahl(j.zimmer, ' Zi.')} | ${zahl(j.preis_je_qm, ' €/m²')}${j.provision_kaeufer_pct === 0 ? ' | provisionsfrei' : ''}\\n  ${esc(z2)}${typeof j.gesamtaufwand_eur === 'number' ? ' | Gesamtaufwand ' + eur(j.gesamtaufwand_eur) : ''}`);\n}\n\nconst MAX = 3900;\nconst teile = [];\nlet akt = kopf;\nfor (const z of zeilen) {\n  if ((akt + '\\n' + z).length > MAX) { teile.push(akt); akt = z; } else { akt += '\\n' + z; }\n}\nteile.push(akt);\nreturn teile.map((text, i) => ({ json: { text, teil: i + 1, teile: teile.length, anzahl_neu: neu.length, anzahl_bestand: rows.length, schluessel: neu.map(j => j.objekt_schluessel) } }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -99,7 +106,7 @@
             "zeit": "={{ $now.toISO() }}",
             "lauf_id": "={{ $execution.id }}",
             "quelle": "telegram",
-            "nutzlast": "={{ JSON.stringify({anzahl_neu: $('Digest bauen').first().json.anzahl_neu, anzahl_bestand: $('Digest bauen').first().json.anzahl_bestand, teile: $('Digest bauen').first().json.teile, schluessel: $('Digest bauen').first().json.schluessel}) }}"
+            "nutzlast": "={{ JSON.stringify({anzahl_neu: $('Digest bauen').first().json.anzahl_neu, teile: $('Digest bauen').first().json.teile, schluessel: $('Digest bauen').first().json.schluessel}) }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -181,8 +188,8 @@
     },
     {
       "parameters": {
-        "content": "### S4 Zusteller, minimal (Phase 1a)\n\nTäglich 7:00 Europe/Berlin. Liest objekt, nimmt Zeilen mit erfasst_am\nin den letzten 24 h, baut je Suchauftrag eine Liste und schickt sie\nper Telegram an Christoph (Chat-ID 884133793). v2: je Profil nach Vorscore (S3 Vorstufe) sortiert,\nmit Belegdichte, Lage und Deckelstatus.\n\nBei 0 neuen Objekten geht trotzdem eine kurze Nachricht (Lebenszeichen).\nJeder Lauf schreibt ein Ereignis DIGEST mit Anzahl und Schlüsseln.\n\nEinrichtung: Telegram-Credential \"Telegram Immo Digest\" am Knoten\n\"Telegram senden\" auswählen. Token nur im Passwortmanager.",
-        "height": 300,
+        "content": "### S4 Zusteller v3 (Phase 1a)\n\nTaeglich 7:00 Europe/Berlin. Liest objekt mit zustand = vorbewertet\n(= von S3 bewertet, noch nie gemeldet), schickt je Profil eine Liste per\nTelegram an Christoph (Chat-ID 884133793): erst unter Deckel, dann Preis fehlt,\ndann ueber Deckel; innerhalb nach Vorscore. Danach setzt er zustand = gemeldet\nund gemeldet_am. Jedes Objekt erscheint genau einmal.\n\nBei 0 Objekten geht eine kurze Nachricht (Lebenszeichen, R17).\nJeder Lauf schreibt ein Ereignis DIGEST.\n\nVorher in objekt anlegen: gemeldet_am (string).\nCredential \"Telegram Immo Digest\" am Knoten \"Telegram senden\" waehlen.",
+        "height": 320,
         "width": 440,
         "color": 6
       },
@@ -194,6 +201,82 @@
       ],
       "id": "6f1f5073-4fc4-4fbf-d344-5b6c7d8e9fa5",
       "name": "Sticky: S4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ein Item je gemeldetem Objekt, damit die Tabelle den Zustand fortschreibt (vorbewertet -> gemeldet)\nconst keys = $('Digest bauen').first().json.schluessel || [];\nconst jetzt = new Date().toISOString();\nreturn keys.map(k => ({ json: { objekt_schluessel: k, zustand: 'gemeldet', gemeldet_am: jetzt } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        300
+      ],
+      "id": "7a2b6184-5fd5-4c0a-e455-6c7d8e9fa0b6",
+      "name": "Gemeldet-Liste"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "objekt_schluessel",
+              "condition": "eq",
+              "keyValue": "={{ $json.objekt_schluessel }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "zustand": "={{ $json.zustand }}",
+            "gemeldet_am": "={{ $json.gemeldet_am }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "zustand",
+              "displayName": "zustand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "gemeldet_am",
+              "displayName": "gemeldet_am",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        300
+      ],
+      "id": "8b3c7295-6e06-4d1b-f566-7d8e9fa0b1c7",
+      "name": "objekt: als gemeldet markieren"
     }
   ],
   "pinData": {},
@@ -202,18 +285,7 @@
       "main": [
         [
           {
-            "node": "objekt lesen",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "objekt lesen": {
-      "main": [
-        [
-          {
-            "node": "Digest bauen",
+            "node": "Ungemeldete Objekte lesen",
             "type": "main",
             "index": 0
           }
@@ -236,6 +308,39 @@
         [
           {
             "node": "Ereignis DIGEST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ungemeldete Objekte lesen": {
+      "main": [
+        [
+          {
+            "node": "Digest bauen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ereignis DIGEST": {
+      "main": [
+        [
+          {
+            "node": "Gemeldet-Liste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemeldet-Liste": {
+      "main": [
+        [
+          {
+            "node": "objekt: als gemeldet markieren",
             "type": "main",
             "index": 0
           }

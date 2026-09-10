@@ -43,3 +43,9 @@ werkzeug-tabellen-leeren.json loescht alle Zeilen in objekt und ereignis. Nur vo
 s3-vorstufe.json ist der Buchhalter in der Vorstufe. Er liest objekt mit zustand = neu und rechnet aus den Anzeigenfeldern: Gesamtaufwand (Kaufpreis plus 8,5 Prozent Nebenkosten plus Courtage, Rueckfall 3,57 Prozent), Deckelstatus am Angebotspreis als Notbehelf nach R4 (unter_deckel, ueber_deckel_angebotspreis, kein_preis), Lagestufe (kernlage, im_radius), Punkte fuer Zimmer, bei Profil B auch Wohnflaeche und Grundstueck. Der Vorscore ist das gewichtete Mittel nur ueber belegte Kriterien. Die Belegdichte ist der Anteil der belegten Gewichte (A 0,14; B 0,30 bis 0,40). Der Code liegt in s3_vorstufe.js. Neue Spalten in objekt: profil, deckel_status, lage_stufe, bewertung_json, bewertet_am (string); gesamtaufwand_eur, vorscore, belegdichte (number). Test: 90 Zeilen gelesen, 90 aktualisiert, 90 Ereignisse VORBEWERTET.
 
 s4-digest-telegram.json v2 sortiert je Profil nach Vorscore und zeigt Belegdichte, Lagestufe, Deckelstatus und Gesamtaufwand. Kopfzeile nennt die Anzahl ohne Vorbewertung.
+
+## S4 v3 (10.09.2026, abgenommen)
+
+s4-digest-telegram.json v3 meldet ueber den Zustand, nicht ueber ein Zeitfenster. Er liest objekt mit zustand = vorbewertet, sortiert je Profil erst nach Deckelstatus (unter_deckel, kein_preis, ueber_deckel_angebotspreis), dann nach Vorscore (E34). Nach dem Senden setzt er zustand = gemeldet und gemeldet_am. Jedes Objekt erscheint genau einmal. Bei 0 Objekten geht ein Lebenszeichen (R17). Neue Spalte in objekt: gemeldet_am (string). Zustandsfolge in Phase 1a: neu (S1) -> vorbewertet (S3) -> gemeldet (S4).
+
+Erstlauf ohne Nachricht: Knoten "Telegram senden" deaktivieren, ausfuehren, wieder aktivieren. So werden schon gesehene Objekte als gemeldet markiert.
