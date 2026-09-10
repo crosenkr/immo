@@ -29,3 +29,11 @@ v2 (10.09.2026): Mailabschluss nach dem Muster der Paketverfolgung v4. IMAP holt
 Was in Phase 1a bewusst fehlt: Aenderungserkennung PREIS_RUNTER/PREIS_RAUF (Phase 2, ueber roh_block_hash), Schwaerzung S2 (naechster Baustein, vor dem ersten Modellaufruf).
 
 Abnahme A1.1-Teil: Nach dem ersten Lauf stehen in `objekt` so viele Zeilen wie Anzeigen in den Mails der letzten zwei Tage (Bestaetigungsmail: 30), in `ereignis` je Zeile ein NEU; der zweite Lauf fuegt nichts hinzu (Idempotenz).
+
+## Stand 10.09.2026
+
+s1-sammler-is24.json ist v3.1. Dedupe geschieht in zwei Stufen: "Dublette im Lauf" (Remove Duplicates auf objekt_schluessel im aktuellen Input) und "Nur neue Objekte" (Data Table, If Row Does Not Exist auf objekt_schluessel). Grund: die Tabellenpruefung sieht alle Items eines Laufs vor dem ersten Insert. Test: 10 Mails, 96 Anzeigen, 90 eindeutige Objekte, 90 Zeilen in objekt und ereignis.
+
+s4-digest-telegram.json ist der minimale Zusteller: taeglich 7:00 Europe/Berlin, neue Objekte der letzten 24 h je Suchauftrag, HTML-Nachricht an Chat-ID 884133793, geteilt unter 4096 Zeichen, Ereignis DIGEST je Lauf. Credential "Telegram Immo Digest" am Knoten "Telegram senden" waehlen.
+
+werkzeug-tabellen-leeren.json loescht alle Zeilen in objekt und ereignis. Nur von Hand starten, nie aktivieren.

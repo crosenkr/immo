@@ -1,0 +1,142 @@
+{
+  "name": "Immo S4 Digest Telegram (Phase 1a, minimal)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [-1200, 300],
+      "id": "1a6a0b2e-9a7f-4b6a-8e9f-0c1d2e3f4a50",
+      "name": "Täglich 7:00"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "returnAll": true,
+        "filters": {
+          "conditions": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [-976, 300],
+      "id": "2b7b1c3f-0b80-4c7b-9f00-1d2e3f4a5b61",
+      "name": "objekt lesen",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// S4 Zusteller, minimal (Phase 1a): neue Objekte der letzten 24 Stunden als Telegram-Text (HTML), noch ohne Score.\n// Regeln: nur Felder aus der Tabelle, keine Bewertung, kein Abruf. Telegram-Grenze 4096 Zeichen je Nachricht -> Teile.\nconst STUNDEN = 24;\nconst grenze = Date.now() - STUNDEN * 3600 * 1000;\nconst esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst eur = n => (typeof n === 'number') ? n.toLocaleString('de-DE') + ' €' : 'k. A.';\nconst zahl = (n, e) => (typeof n === 'number') ? n.toLocaleString('de-DE') + e : 'k. A.';\n\nconst rows = $input.all().map(i => i.json).filter(j => j && j.objekt_schluessel && String(j.objekt_schluessel).startsWith('is24:'));\nconst neu = rows.filter(j => { const t = Date.parse(j.erfasst_am || ''); return Number.isFinite(t) && t >= grenze; });\nneu.sort((a, b) => String(a.suchauftrag || '').localeCompare(String(b.suchauftrag || '')) || (a.preis_je_qm || 0) - (b.preis_je_qm || 0));\n\nconst datum = new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });\nconst kopf = `<b>Immo-Digest ${esc(datum)}</b>\\nNeu in den letzten ${STUNDEN} h: ${neu.length} (Bestand: ${rows.length}). Noch ohne Bewertung.`;\n\nconst zeilen = [];\nlet letzter = null;\nfor (const j of neu) {\n  const sa = j.suchauftrag || 'ohne Suchauftrag';\n  if (sa !== letzter) { zeilen.push(`\\n<b>${esc(sa)}</b>`); letzter = sa; }\n  const ort = [j.stadtteil, j.strasse].filter(x => x && x !== 'fehlt in der Anzeige').join(', ');\n  const link = j.link ? `<a href=\"${esc(j.link)}\">${esc(j.titel || j.objekt_schluessel)}</a>` : esc(j.titel || j.objekt_schluessel);\n  zeilen.push(`• ${link}\\n  ${esc(ort || 'Lage k. A.')} | ${eur(j.kaufpreis_eur)} | ${zahl(j.wohnflaeche_qm, ' m²')} | ${zahl(j.zimmer, ' Zi.')} | ${zahl(j.preis_je_qm, ' €/m²')}${j.provision_kaeufer_pct === 0 ? ' | provisionsfrei' : ''}`);\n}\n\n// In Nachrichten von max. 3900 Zeichen teilen (Reserve unter 4096)\nconst MAX = 3900;\nconst teile = [];\nlet akt = kopf;\nfor (const z of zeilen) {\n  if ((akt + '\\n' + z).length > MAX) { teile.push(akt); akt = z; } else { akt += '\\n' + z; }\n}\nteile.push(akt);\n\nreturn teile.map((text, i) => ({ json: { text, teil: i + 1, teile: teile.length, anzahl_neu: neu.length, anzahl_bestand: rows.length, schluessel: neu.map(j => j.objekt_schluessel) } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-752, 300],
+      "id": "3c8c2d40-1c91-4d8c-a011-2e3f4a5b6c72",
+      "name": "Digest bauen"
+    },
+    {
+      "parameters": {
+        "chatId": "884133793",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [-528, 300],
+      "id": "4d9d3e51-2da2-4e9d-b122-3f4a5b6c7d83",
+      "name": "Telegram senden",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "d6rJmS98tcnUCPiw",
+          "mode": "list",
+          "cachedResultName": "ereignis",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/d6rJmS98tcnUCPiw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "objekt_schluessel": "",
+            "typ": "DIGEST",
+            "zeit": "={{ $now.toISO() }}",
+            "lauf_id": "={{ $execution.id }}",
+            "quelle": "telegram",
+            "nutzlast": "={{ JSON.stringify({anzahl_neu: $('Digest bauen').first().json.anzahl_neu, anzahl_bestand: $('Digest bauen').first().json.anzahl_bestand, teile: $('Digest bauen').first().json.teile, schluessel: $('Digest bauen').first().json.schluessel}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {"id": "objekt_schluessel", "displayName": "objekt_schluessel", "required": false, "defaultMatch": false, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "typ", "displayName": "typ", "required": false, "defaultMatch": false, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "zeit", "displayName": "zeit", "required": false, "defaultMatch": false, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "lauf_id", "displayName": "lauf_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "quelle", "displayName": "quelle", "required": false, "defaultMatch": false, "display": true, "type": "string", "readOnly": false, "removed": false},
+            {"id": "nutzlast", "displayName": "nutzlast", "required": false, "defaultMatch": false, "display": true, "type": "string", "readOnly": false, "removed": false}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [-304, 300],
+      "id": "5e0e4f62-3eb3-4fae-c233-4a5b6c7d8e94",
+      "name": "Ereignis DIGEST",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "content": "### S4 Zusteller, minimal (Phase 1a)\n\nTäglich 7:00 Europe/Berlin. Liest objekt, nimmt Zeilen mit erfasst_am\nin den letzten 24 h, baut je Suchauftrag eine Liste und schickt sie\nper Telegram an Christoph (Chat-ID 884133793). Noch ohne Score;\nS3/C2 kommt als eigener Baustein davor.\n\nBei 0 neuen Objekten geht trotzdem eine kurze Nachricht (Lebenszeichen).\nJeder Lauf schreibt ein Ereignis DIGEST mit Anzahl und Schlüsseln.\n\nEinrichtung: Telegram-Credential \"Telegram Immo Digest\" am Knoten\n\"Telegram senden\" auswählen. Token nur im Passwortmanager.",
+        "height": 300,
+        "width": 440,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-1200, 520],
+      "id": "6f1f5073-4fc4-4fbf-d344-5b6c7d8e9fa5",
+      "name": "Sticky: S4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Täglich 7:00": {"main": [[{"node": "objekt lesen", "type": "main", "index": 0}]]},
+    "objekt lesen": {"main": [[{"node": "Digest bauen", "type": "main", "index": 0}]]},
+    "Digest bauen": {"main": [[{"node": "Telegram senden", "type": "main", "index": 0}]]},
+    "Telegram senden": {"main": [[{"node": "Ereignis DIGEST", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "errorWorkflow": "HLOJsWSboUnvLnFf",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": []
+}
