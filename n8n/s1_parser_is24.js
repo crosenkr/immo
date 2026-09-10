@@ -67,14 +67,19 @@ const quelle = quelle_tag === 'is24' || /immobilienscout24\.de$/i.test(fromDomai
 // Suchauftrag: Name im Text ("Deine suche ... wurde erfolgreich gespeichert") oder im Betreff; sonst savedSearchId aus dem ersten Link
 const subject = String(item.subject || '');
 const ssid = (text.match(/savedSearchId=(\d+)/) || [])[1] || null;
-let suchauftrag = (subject.match(/„(.+?)“|"(.+?)"/) || []).slice(1).find(Boolean) || null;
+// Name des Suchauftrags: Benachrichtigungen tragen "Ihre Suche: <Name>", die Bestaetigung nur die Suchbeschreibung.
+// Rueckfall ist die Zuordnung ueber savedSearchId (Stand 10.09.2026, aus den ersten Mails; neue Suchauftraege hier nachtragen).
+const SAVED_SEARCH = { '202146772': 'A Anlage', '202146663': 'B Haus', '202146700': 'A Anlage (alt, bis 446.000)' };
+let suchauftrag = (text.match(/^Ihre Suche:\s*(.+)$/mi) || [])[1] || null;
+if (!suchauftrag && ssid && SAVED_SEARCH[ssid]) suchauftrag = SAVED_SEARCH[ssid];
 if (!suchauftrag) {
-  const m = text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/Suchauftrag[:\s]+(.+)$/mi);
+  const m = text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/gespeicherten Suche (.+?)\n/i);
   suchauftrag = m ? m[1].trim() : null;
 }
+const suchbeschreibung = (text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/gespeicherten Suche (.+?)\n/i) || [])[1] || null;
 
 const mailart = /wurde erfolgreich gespeichert|Neuer Suchauftrag wurde angelegt/i.test(text + subject)
-  ? 'bestaetigung' : (/fulfillment|Neue Angebote|neue Immobilien|passend/i.test(text + subject) ? 'benachrichtigung' : 'unbekannt');
+  ? 'bestaetigung' : (/fulfillment_update|neue Angebote|neues Angebot|Ihre Suche:/i.test(text + subject) ? 'benachrichtigung' : 'unbekannt');
 
 // Anzeigenbloecke: beginnen mit "Titel:" und enden vor dem naechsten "Titel:" oder dem Fusszeilenbeginn
 const cut = text.search(/\n\s*(Datenschutz|Impressum|© 1999|ImmoScout24 informiert)/i);
@@ -125,7 +130,7 @@ for (const b of blocks) {
         adresse: adresse.zitat, provision_kaeufer_pct: provisionsfrei ? merkmalZeile : null, titel: titel.zitat,
       },
       belegklasse: 'B1',
-      parser_version: 'is24-2026-09-10.2',
+      parser_version: 'is24-2026-09-10.3',
       roh_block_sha256: null,                                             // setzt der Folgeknoten (Crypto), fuer den Aenderungsvergleich
     },
   });
@@ -133,7 +138,7 @@ for (const b of blocks) {
 
 if (blocks.length === 0 && mailart !== 'unbekannt') {
   // Sichtbares Scheitern (R17): Suchauftragsmail ohne erkannten Anzeigenblock -> Item mit Stoerungsmarke, kein stilles Leerlaufen
-  out.push({ json: { quelle, mailart, suchauftrag, mail_uid: item.uid || null, stoerung: 'parser_keine_anzeigen', parser_version: 'is24-2026-09-10.2', textlaenge: text.length } });
+  out.push({ json: { quelle, mailart, suchauftrag, mail_uid: item.uid || null, stoerung: 'parser_keine_anzeigen', parser_version: 'is24-2026-09-10.3', textlaenge: text.length } });
 }
 // Kontomails von ImmoScout (Adresse bestaetigen, Newsletter) haben mailart 'unbekannt' und keine Bloecke: sie werden ohne Item uebergangen
 }
