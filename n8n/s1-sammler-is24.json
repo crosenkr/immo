@@ -1,5 +1,5 @@
 {
-  "name": "Immo S1 Sammler IS24 (Phase 1a)",
+  "name": "Immo S1 Sammler IS24 (Phase 1a, v2 mit Mailabschluss)",
   "nodes": [
     {
       "parameters": {
@@ -32,12 +32,12 @@
           "cachedResultName": "INBOX",
           "cachedResultUrl": ""
         },
-        "emailDateRange": {
-          "since": "={{ $now.minus({ days: 2 }).toFormat('dd-MMM-yyyy') }}"
+        "emailDateRange": {},
+        "emailFlags": {
+          "seen": false
         },
-        "emailFlags": {},
         "emailSearchFilters": {},
-        "limit": 200,
+        "limit": 50,
         "includeParts": [
           "textContent",
           "htmlContent"
@@ -59,21 +59,6 @@
           "name": "IMAP immo (immo@rosenkranz.cologne)"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "removeItemsSeenInPreviousExecutions",
-        "dedupeValue": "={{ $json.envelope.messageId }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.removeDuplicates",
-      "typeVersion": 2,
-      "position": [
-        448,
-        0
-      ],
-      "id": "d7be4ef7-465b-44c4-9563-7e1269d7a3de",
-      "name": "Nur neue Mails"
     },
     {
       "parameters": {
@@ -99,11 +84,12 @@
         0
       ],
       "id": "ffe40692-54b6-453a-a3e2-5bc6bfd64255",
-      "name": "IS24-Mail parsen"
+      "name": "IS24-Mail parsen",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "// Aenderungs-Hash je Anzeige (FNV-1a 32 Bit ueber die typisierten Felder), fuer PREIS_RUNTER / PREIS_RAUF ab Phase 2\nconst raus = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  if (j.stoerung) { raus.push(item); continue; }\n  const s = [j.titel, j.kaufpreis_eur, j.wohnflaeche_qm, j.zimmer, j.strasse, j.hausnummer, j.stadtteil].join('|');\n  let h = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  j.roh_block_sha256 = null; j.roh_block_hash = h.toString(16).padStart(8, '0');\n  for (const k of ['kaufpreis_eur','wohnflaeche_qm','zimmer','grundstueck_qm','preis_je_qm','provision_kaeufer_pct']) { if (typeof j[k] !== 'number') j[k] = null; }  // Zahlenspalten: 'fehlt in der Anzeige' wird null (R6-Zustand steht in belege)\n  j.erfasst_am = new Date().toISOString();\n  j.zustand = 'neu';                                                  // Zustandsmodell K2: neu -> bewertet -> ...\n  j.belege = JSON.stringify(j.belege); j.merkmale = JSON.stringify(j.merkmale);\n  raus.push({ json: j });\n}\nreturn raus;\n"
+        "jsCode": "// Aenderungs-Hash je Anzeige (FNV-1a 32 Bit ueber die typisierten Felder), fuer PREIS_RUNTER / PREIS_RAUF ab Phase 2\nconst raus = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  if (j.stoerung) { raus.push(item); continue; }\n  if (!j.objekt_schluessel) { raus.push({ json: { objekt_schluessel: 'kein_objekt', leer: true } }); continue; }   // Leerlauf: nur Kontomails, Mailabschluss soll trotzdem laufen\n  const s = [j.titel, j.kaufpreis_eur, j.wohnflaeche_qm, j.zimmer, j.strasse, j.hausnummer, j.stadtteil].join('|');\n  let h = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }\n  j.roh_block_sha256 = null; j.roh_block_hash = h.toString(16).padStart(8, '0');\n  for (const k of ['kaufpreis_eur','wohnflaeche_qm','zimmer','grundstueck_qm','preis_je_qm','provision_kaeufer_pct']) { if (typeof j[k] !== 'number') j[k] = null; }  // Zahlenspalten: 'fehlt in der Anzeige' wird null (R6-Zustand steht in belege)\n  j.erfasst_am = new Date().toISOString();\n  j.zustand = 'neu';                                                  // Zustandsmodell K2: neu -> bewertet -> ...\n  j.belege = JSON.stringify(j.belege); j.merkmale = JSON.stringify(j.merkmale);\n  raus.push({ json: j });\n}\nreturn raus;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -161,7 +147,8 @@
         -96
       ],
       "id": "0c6d981c-c082-4dea-85ff-6e2fdc5d4d08",
-      "name": "Nur neue Objekte"
+      "name": "Nur neue Objekte",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
@@ -483,8 +470,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1792,
-        -96
+        2016,
+        -256
       ],
       "id": "ef77ad15-5ecd-4895-ba37-f09d45789c2f",
       "name": "objekt einfuegen"
@@ -578,8 +565,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2016,
-        -96
+        2240,
+        -256
       ],
       "id": "780dca9d-5920-4420-b2d0-51d3f419ce39",
       "name": "Ereignis NEU"
@@ -678,6 +665,244 @@
       ],
       "id": "b50dfd0e-6b04-4920-9d2b-56313156e14e",
       "name": "Ereignis STOERUNG"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bcad74ac-519a-4d17-b0b8-a7aa400df9a4",
+              "leftValue": "={{ $json.objekt_schluessel }}",
+              "rightValue": "is24:",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        -96
+      ],
+      "id": "d25d119b-de37-471e-be27-df7d45028d3f",
+      "name": "Neue Objekte?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mailabschluss vorbereiten: UIDs aller in diesem Lauf verarbeiteten ImmoScout-Mails,\n// ohne die Mails, die eine Stoerung ausgeloest haben (die gehen nach Immo/DLQ).\nconst alle = $('Felder angleichen').all().map(i => i.json.uid).filter(u => Number.isFinite(u));\nlet stoer = [];\ntry { stoer = $('Hash und Zustand').all().filter(i => i.json.stoerung).map(i => i.json.mail_uid).filter(u => Number.isFinite(u)); } catch (e) {}\nconst ok = Array.from(new Set(alle.filter(u => !stoer.includes(u))));\nconst dlq = Array.from(new Set(stoer));\nif (!ok.length && !dlq.length) return [];\nreturn [{ json: { uids: ok, uid_list: ok.join(','), dlq_uids: dlq, dlq_list: dlq.join(',') } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        -96
+      ],
+      "id": "681b0387-9fe4-4795-aceb-88b96d162b3f",
+      "name": "UIDs einsammeln"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "097a9c5d-de89-4841-b545-7df61c90bc9d",
+              "leftValue": "={{ $json.uid_list }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2464,
+        64
+      ],
+      "id": "4dbfb170-f32e-43d7-9645-7435753553be",
+      "name": "Hat Archiv-UIDs?"
+    },
+    {
+      "parameters": {
+        "authentication": "coreImapAccount",
+        "resource": "email",
+        "operation": "setEmailFlags",
+        "mailboxPath": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $json.uid_list }}",
+        "flags": {
+          "\\Seen": true
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -96
+      ],
+      "id": "39cf331a-6e08-4feb-a023-e6af09be28b6",
+      "name": "IMAP: als gelesen markieren",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "imap": {
+          "id": "",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "coreImapAccount",
+        "resource": "email",
+        "operation": "moveEmail",
+        "sourceMailbox": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $('UIDs einsammeln').first().json.uid_list }}",
+        "destinationMailbox": {
+          "__rl": true,
+          "value": "Immo/Archiv",
+          "mode": "list",
+          "cachedResultName": "Immo/Archiv"
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        -96
+      ],
+      "id": "77cac8b3-6154-4819-8e0b-325ca1e1df37",
+      "name": "IMAP: nach Immo/Archiv",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "imap": {
+          "id": "",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1b9919a4-2998-40e8-b507-35ce41e89fb8",
+              "leftValue": "={{ $('UIDs einsammeln').first().json.dlq_list }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2912,
+        -96
+      ],
+      "id": "323ba12f-d2d7-4717-8232-ddfde01acc0d",
+      "name": "Hat DLQ-UIDs?"
+    },
+    {
+      "parameters": {
+        "authentication": "coreImapAccount",
+        "resource": "email",
+        "operation": "moveEmail",
+        "sourceMailbox": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $('UIDs einsammeln').first().json.dlq_list }}",
+        "destinationMailbox": {
+          "__rl": true,
+          "value": "Immo/DLQ",
+          "mode": "list",
+          "cachedResultName": "Immo/DLQ"
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        224
+      ],
+      "id": "74527c79-aeca-43b3-b507-10d625b42660",
+      "name": "IMAP: Stoerung nach Immo/DLQ",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "imap": {
+          "id": "",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Mailabschluss (Phase 1a)\n\nDer Posteingang ist die Warteschlange: nur ungelesene Mails werden geholt.\nErst nach dem Schreiben in objekt und ereignis werden die Mails als gelesen\nmarkiert und nach Immo/Archiv verschoben; Stoerungsmails gehen nach Immo/DLQ.\nScheitert der Lauf vorher, bleibt die Mail ungelesen und wird beim naechsten\nLauf erneut versucht. Reihenfolge: erst Flag, dann verschieben.\n\nZielordner ueber die Liste auswaehlen, falls der Server sie anders schreibt\n(z.B. INBOX.Immo.Archiv).",
+        "height": 260,
+        "width": 420,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        160
+      ],
+      "id": "b8267d9d-4c36-4338-a01c-c5f87b1533c1",
+      "name": "Sticky: Mailabschluss"
     }
   ],
   "pinData": {},
@@ -694,17 +919,6 @@
       ]
     },
     "IMAP immo@ lesen": {
-      "main": [
-        [
-          {
-            "node": "Nur neue Mails",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Nur neue Mails": {
       "main": [
         [
           {
@@ -770,7 +984,7 @@
       "main": [
         [
           {
-            "node": "objekt einfuegen",
+            "node": "Neue Objekte?",
             "type": "main",
             "index": 0
           }
@@ -786,6 +1000,109 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Neue Objekte?": {
+      "main": [
+        [
+          {
+            "node": "objekt einfuegen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "UIDs einsammeln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ereignis NEU": {
+      "main": [
+        [
+          {
+            "node": "UIDs einsammeln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ereignis STOERUNG": {
+      "main": [
+        [
+          {
+            "node": "UIDs einsammeln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UIDs einsammeln": {
+      "main": [
+        [
+          {
+            "node": "Hat Archiv-UIDs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hat Archiv-UIDs?": {
+      "main": [
+        [
+          {
+            "node": "IMAP: als gelesen markieren",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hat DLQ-UIDs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAP: als gelesen markieren": {
+      "main": [
+        [
+          {
+            "node": "IMAP: nach Immo/Archiv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAP: nach Immo/Archiv": {
+      "main": [
+        [
+          {
+            "node": "Hat DLQ-UIDs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hat DLQ-UIDs?": {
+      "main": [
+        [
+          {
+            "node": "IMAP: Stoerung nach Immo/DLQ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     }
   },

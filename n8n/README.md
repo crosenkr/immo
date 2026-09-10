@@ -24,6 +24,8 @@ Data Table `objekt` (Spalten): objekt_schluessel, quelle, expose_id, suchauftrag
 
 Data Table `ereignis` (Spalten): objekt_schluessel, typ, zeit, lauf_id, quelle, nutzlast (alle string).
 
-Was in Phase 1a bewusst fehlt: Archiv-Verschiebung der Mail (Posteingang bleibt Warteschlange, Dedup ueber messageId und objekt_schluessel), Aenderungserkennung PREIS_RUNTER/PREIS_RAUF (Phase 2, ueber roh_block_hash), Schwaerzung S2 (naechster Baustein, vor dem ersten Modellaufruf).
+v2 (10.09.2026): Mailabschluss nach dem Muster der Paketverfolgung v4. IMAP holt nur ungelesene Mails; nach dem Schreiben werden die UIDs aus "Felder angleichen" als gelesen markiert und nach Immo/Archiv verschoben, Stoerungsmails nach Immo/DLQ. Der Knoten "Nur neue Mails" entfaellt, die Ungelesen-Markierung ist die Warteschlange; "Nur neue Objekte" bleibt als zweiter Schutz. Zielordner im Knoten aus der Liste waehlen, falls der Server sie anders schreibt.
+
+Was in Phase 1a bewusst fehlt: Aenderungserkennung PREIS_RUNTER/PREIS_RAUF (Phase 2, ueber roh_block_hash), Schwaerzung S2 (naechster Baustein, vor dem ersten Modellaufruf).
 
 Abnahme A1.1-Teil: Nach dem ersten Lauf stehen in `objekt` so viele Zeilen wie Anzeigen in den Mails der letzten zwei Tage (Bestaetigungsmail: 30), in `ereignis` je Zeile ein NEU; der zweite Lauf fuegt nichts hinzu (Idempotenz).
