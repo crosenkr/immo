@@ -15,3 +15,15 @@ Knotenkette, wie beim Paket-Workflow v4:
 Test ohne n8n: `node n8n/test_s1_parser.js` (synthetischer Testfall, kein echter Portaltext im Repository).
 
 Geprueft am 10.09.2026 gegen die Bestaetigungsmail des Suchauftrags "A Anlage" (30 Anzeigen): 30 von 30 erkannt, alle Felder Kaufpreis, Wohnflaeche, Zimmer, Stadtteil gefuellt; 2 Anzeigen ohne Hausnummer, 1 ohne Strasse (korrekt als "fehlt in der Anzeige"). Das Format der Echtzeit-Benachrichtigung ist noch nicht geprueft; der Parser haengt an den Feldzeilen, nicht am Rahmen.
+
+## Import von `s1-sammler-is24.json` (Phase 1a, Stand 10.09.2026)
+
+Der Export ist aus dem Muster des E-Mail-Sammlers (`sammler-privat.json` in ki-umgebung) gebaut: Schedule, IMAP (`n8n-nodes-imap`), Remove Duplicates, Code, Data Table. Vor dem Import zwei Data Tables anlegen, danach im Workflow zwei Dinge auswaehlen (Zugangsdaten und Tabellen). Der Workflow ist inaktiv exportiert.
+
+Data Table `objekt` (Spalten): objekt_schluessel, quelle, expose_id, suchauftrag, saved_search_id, titel, strasse, hausnummer, stadtteil, ort (string); kaufpreis_eur, wohnflaeche_qm, zimmer, grundstueck_qm, preis_je_qm, provision_kaeufer_pct (number); merkmale, belege, belegklasse, link, mailart, mail_uid, mail_datum, roh_block_hash, parser_version, erfasst_am, zustand (string).
+
+Data Table `ereignis` (Spalten): objekt_schluessel, typ, zeit, lauf_id, quelle, nutzlast (alle string).
+
+Was in Phase 1a bewusst fehlt: Archiv-Verschiebung der Mail (Posteingang bleibt Warteschlange, Dedup ueber messageId und objekt_schluessel), Aenderungserkennung PREIS_RUNTER/PREIS_RAUF (Phase 2, ueber roh_block_hash), Schwaerzung S2 (naechster Baustein, vor dem ersten Modellaufruf).
+
+Abnahme A1.1-Teil: Nach dem ersten Lauf stehen in `objekt` so viele Zeilen wie Anzeigen in den Mails der letzten zwei Tage (Bestaetigungsmail: 30), in `ereignis` je Zeile ein NEU; der zweite Lauf fuegt nichts hinzu (Idempotenz).
