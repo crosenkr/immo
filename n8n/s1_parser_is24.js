@@ -1,4 +1,4 @@
-// S1 Sammler, Schritt "IS24-Mail parsen" (n8n Code-Knoten, Modus "Run Once for Each Item")
+// S1 Sammler, Schritt "IS24-Mail parsen" (n8n Code-Knoten, Modus "Run Once for All Items": eine Mail liefert viele Anzeigen)
 // Eingabe: ein Item je Mail mit den Feldern textContent (bevorzugt), htmlContent, subject, from, to, date, uid
 // Ausgabe: ein Item je Anzeige mit typisierten Feldern nach R6 (Wert oder "fehlt in der Anzeige"), Belegzitat je Feld (R1)
 // Quelle und Suchauftrag kommen aus Empfaengeradresse (Plus-Tag) und Betreff/Text, nie aus dem Anzeigentext (R20).
@@ -22,7 +22,7 @@ function plainFromHtml(html) {
 function toNumber(s) {
   // "598.000 €" -> 598000 ; "94 m²" -> 94 ; "3,5" -> 3.5
   if (s == null) return null;
-  const m = String(s).replace(/ /g, ' ').match(/-?\d{1,3}(?:\.\d{3})*(?:,\d+)?|-?\d+(?:,\d+)?/);
+  const m = String(s).replace(/ /g, ' ').match(/-?\d{1,3}(?:\.\d{3})*(?:,\d+)?|-?\d+(?:,\d+)?/);
   if (!m) return null;
   return Number(m[0].replace(/\./g, '').replace(',', '.'));
 }
@@ -54,7 +54,9 @@ function parseAddress(a) {
   return out;
 }
 
-const item = $input.item.json;
+const out = [];
+for (const _it of $input.all()) {
+const item = _it.json;
 const text = (item.textContent && item.textContent.trim().length > 200) ? item.textContent : plainFromHtml(item.htmlContent || '');
 const to = String(item.to || item['to'] || '');
 const tagMatch = to.match(/\+([a-z0-9-]+)@/i);
@@ -79,7 +81,6 @@ const cut = text.search(/\n\s*(Datenschutz|Impressum|© 1999|ImmoScout24 informi
 const body = cut > 0 ? text.slice(0, cut) : text;
 const blocks = body.split(/\n(?=Titel:\s)/).filter(b => /^Titel:/m.test(b));
 
-const out = [];
 for (const b of blocks) {
   const titel = field(b, 'Titel');
   const link = field(b, 'Link');
@@ -124,14 +125,16 @@ for (const b of blocks) {
         adresse: adresse.zitat, provision_kaeufer_pct: provisionsfrei ? merkmalZeile : null, titel: titel.zitat,
       },
       belegklasse: 'B1',
-      parser_version: 'is24-2026-09-10.1',
+      parser_version: 'is24-2026-09-10.2',
       roh_block_sha256: null,                                             // setzt der Folgeknoten (Crypto), fuer den Aenderungsvergleich
     },
   });
 }
 
-if (out.length === 0) {
-  // Sichtbares Scheitern (R17): kein Anzeigenblock erkannt -> ein Item mit Stoerungsmarke, kein stilles Leerlaufen
-  out.push({ json: { quelle, mailart, suchauftrag, mail_uid: item.uid || null, stoerung: 'parser_keine_anzeigen', parser_version: 'is24-2026-09-10.1', textlaenge: text.length } });
+if (blocks.length === 0 && mailart !== 'unbekannt') {
+  // Sichtbares Scheitern (R17): Suchauftragsmail ohne erkannten Anzeigenblock -> Item mit Stoerungsmarke, kein stilles Leerlaufen
+  out.push({ json: { quelle, mailart, suchauftrag, mail_uid: item.uid || null, stoerung: 'parser_keine_anzeigen', parser_version: 'is24-2026-09-10.2', textlaenge: text.length } });
+}
+// Kontomails von ImmoScout (Adresse bestaetigen, Newsletter) haben mailart 'unbekannt' und keine Bloecke: sie werden ohne Item uebergangen
 }
 return out;
