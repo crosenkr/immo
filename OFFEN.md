@@ -79,3 +79,15 @@ Jede Entscheidung nennt Optionen und Folge. Die Angabe hinter dem Kapitel sagt, 
 - **E31** (Kapitel 7, vor Phase 2) **Schattenwoche fünf oder zehn Tage.** Zehn geben vierzig Paare, verzögern Phase 2 um eine Woche.
 - **E32** (Kapitel 7, vor Phase 2) **Aufmerksamkeitsprobe A2.6.** Tragbar oder störend. Ohne sie fällt unbemerkte Gewöhnung nicht auf.
 - **E33** (Kapitel 7, vor Phase 0) **Wer quittiert die Proben.** Vorschlag Christoph, per Datum in `immo/runbook.md`.
+
+## Stand Sitzung 1, Nachtrag 10.09.2026: S1 Sammler in Betrieb
+
+S1 Sammler IS24 läuft in n8n als Workflow "Immo S1 Sammler IS24 (Phase 1a, v2 mit Mailabschluss)" (Workflow-ID YtvJLErRSAHPAl5P, aktiv, alle 15 Minuten). Der alte Workflow (XapBbytXdoN4EpCR) ist gelöscht. Der Export liegt unter n8n/s1-sammler-is24.json und enthält die Credential-ID und die Data-Table-IDs (objekt RhcS6X5MWKzfAL22, ereignis d6rJmS98tcnUCPiw), keine Geheimnisse.
+
+Mailabschluss: Der Posteingang von immo@ ist die Warteschlange. Der Sammler holt nur ungelesene Mails von immobilienscout24.de. Nach dem Schreiben in objekt und ereignis markiert er die Mails als gelesen und verschiebt sie nach INBOX/Archiv. Störungsmails gehen nach INBOX/DLQ. Ein Ordner INBOX/Quarantaene ist angelegt und noch ungenutzt. Der Knoten "Nur neue Mails" ist entfernt. "Nur neue Objekte" (Dedupe über objekt_schluessel) bleibt.
+
+Test am 10.09.2026: 7 Mails aus dem Erstlauf ergaben 93 Objekte. Zwei Echtzeitmails ergaben 2 weitere Objekte. Die zwei Mails wurden nach Archiv verschoben. Die 7 alten Mails wurden von Hand nach Archiv verschoben. 0 Störungen.
+
+Suchauftragsname: Benachrichtigungen tragen die Zeile "Ihre Suche: <Name>". Bestätigungsmails tragen den Namen nicht. Hier ordnet der Parser über savedSearchId zu (Tabelle SAVED_SEARCH im Parser, is24-2026-09-10.3). Neue Suchaufträge sind dort nachzutragen. Die 3 Zeilen mit suchauftrag "löschen" aus dem Erstlauf können von Hand auf "A Anlage" gesetzt werden.
+
+Nächster Baustein: S3/C2 (Bewertung gegen profil-a und profil-b, Referenzpreis nach R4) und S4 Telegram-Karte. Danach S2 Schwärzer und Referenzband (Phase 1b).

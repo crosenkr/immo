@@ -15,15 +15,14 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        0,
-        0
+        -2016,
+        256
       ],
-      "id": "f90f8f00-f9e3-4924-8d59-c7f0e58c7dfd",
+      "id": "d261420d-20de-46f3-aa7c-3aaf0ee60450",
       "name": "Alle 15 Minuten"
     },
     {
       "parameters": {
-        "authentication": "coreImapAccount",
         "resource": "email",
         "mailboxPath": {
           "__rl": true,
@@ -37,7 +36,6 @@
           "seen": false
         },
         "emailSearchFilters": {},
-        "limit": 50,
         "includeParts": [
           "textContent",
           "htmlContent"
@@ -46,10 +44,10 @@
       "type": "n8n-nodes-imap.imap",
       "typeVersion": 1,
       "position": [
-        224,
-        0
+        -1792,
+        256
       ],
-      "id": "afbeb5d0-f30a-4e22-912b-16507c67826d",
+      "id": "d0742f96-d0d9-41b2-b573-411eb99910d1",
       "name": "IMAP immo@ lesen",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
@@ -67,23 +65,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        672,
-        0
+        -1344,
+        256
       ],
-      "id": "1462198b-2e3b-4d21-8684-4965a2ac2d77",
+      "id": "807b6b87-207a-4ec1-974b-c3e5291ba9a6",
       "name": "Felder angleichen"
     },
     {
       "parameters": {
-        "jsCode": "// S1 Sammler, Schritt \"IS24-Mail parsen\" (n8n Code-Knoten, Modus \"Run Once for All Items\": eine Mail liefert viele Anzeigen)\n// Eingabe: ein Item je Mail mit den Feldern textContent (bevorzugt), htmlContent, subject, from, to, date, uid\n// Ausgabe: ein Item je Anzeige mit typisierten Feldern nach R6 (Wert oder \"fehlt in der Anzeige\"), Belegzitat je Feld (R1)\n// Quelle und Suchauftrag kommen aus Empfaengeradresse (Plus-Tag) und Betreff/Text, nie aus dem Anzeigentext (R20).\n// Keine URL aus der Mail wird abgerufen. Der Link wird nur als Schluessel (Expose-ID) und als Verweis gespeichert.\n\nconst FEHLT = 'fehlt in der Anzeige';\n\nfunction plainFromHtml(html) {\n  if (!html) return '';\n  return html\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/(p|div|tr|li|h\\d)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, \"'\").replace(/&quot;/g, '\"')\n    .replace(/[ \\t]+/g, ' ')\n    .replace(/\\n\\s*\\n+/g, '\\n');\n}\n\nfunction toNumber(s) {\n  // \"598.000 €\" -> 598000 ; \"94 m²\" -> 94 ; \"3,5\" -> 3.5\n  if (s == null) return null;\n  const m = String(s).replace(/ /g, ' ').match(/-?\\d{1,3}(?:\\.\\d{3})*(?:,\\d+)?|-?\\d+(?:,\\d+)?/);\n  if (!m) return null;\n  return Number(m[0].replace(/\\./g, '').replace(',', '.'));\n}\n\nfunction field(block, label) {\n  // Zeile \"Label: Wert\" -> { wert, zitat } ; fehlt -> { wert: null, zitat: null }\n  const re = new RegExp('^' + label + ':\\\\s*(.+)$', 'mi');\n  const m = block.match(re);\n  return m ? { wert: m[1].trim(), zitat: m[0].trim() } : { wert: null, zitat: null };\n}\n\nconst STADTTEIL_NORM = { 'neustadt/nord': 'Neustadt-Nord', 'neustadt/süd': 'Neustadt-Süd', 'neustadt/sued': 'Neustadt-Süd', 'altstadt/nord': 'Altstadt-Nord', 'altstadt/süd': 'Altstadt-Süd' };\nfunction normStadtteil(s) { if (!s) return s; const k = s.toLowerCase().trim(); return STADTTEIL_NORM[k] || s.trim(); }\n\nfunction parseAddress(a) {\n  // \"Vorgebirgstraße 334, Zollstock, Köln\" | \"Leyendeckerstraße, Ehrenfeld (Ortsteil), Köln\" | \"Ehrenfeld, Köln\"\n  const out = { strasse: null, hausnummer: null, stadtteil: null, ort: null };\n  if (!a) return out;\n  const parts = a.split(',').map(x => x.trim()).filter(Boolean);\n  out.ort = parts.length ? parts[parts.length - 1] : null;\n  if (parts.length >= 3) {\n    out.stadtteil = normStadtteil(parts[parts.length - 2].replace(/\\s*\\(Ortsteil\\)\\s*/i, ''));\n    const sm = parts[0].match(/^(.*?)(?:\\s+(\\d+[a-zA-Z]?(?:\\s*-\\s*\\d+[a-zA-Z]?)?))?$/);\n    out.strasse = sm ? sm[1].trim() || null : parts[0];\n    out.hausnummer = sm && sm[2] ? sm[2].trim() : null;\n  } else if (parts.length === 2) {\n    out.stadtteil = normStadtteil(parts[0].replace(/\\s*\\(Ortsteil\\)\\s*/i, ''));\n  }\n  return out;\n}\n\nconst out = [];\nfor (const _it of $input.all()) {\nconst item = _it.json;\nconst text = (item.textContent && item.textContent.trim().length > 200) ? item.textContent : plainFromHtml(item.htmlContent || '');\nconst to = String(item.to || item['to'] || '');\nconst tagMatch = to.match(/\\+([a-z0-9-]+)@/i);\nconst quelle_tag = tagMatch ? tagMatch[1].toLowerCase() : null;               // \"is24\"\nconst fromDomain = (String(item.from || '').match(/@([a-z0-9.-]+)/i) || [])[1] || null;\nconst quelle = quelle_tag === 'is24' || /immobilienscout24\\.de$/i.test(fromDomain || '') ? 'is24' : (quelle_tag || 'unbekannt');\n\n// Suchauftrag: Name im Text (\"Deine suche ... wurde erfolgreich gespeichert\") oder im Betreff; sonst savedSearchId aus dem ersten Link\nconst subject = String(item.subject || '');\nconst ssid = (text.match(/savedSearchId=(\\d+)/) || [])[1] || null;\n// Name des Suchauftrags: Benachrichtigungen tragen \"Ihre Suche: <Name>\", die Bestaetigung nur die Suchbeschreibung.\n// Rueckfall ist die Zuordnung ueber savedSearchId (Stand 10.09.2026, aus den ersten Mails; neue Suchauftraege hier nachtragen).\nconst SAVED_SEARCH = { '202146772': 'A Anlage', '202146663': 'B Haus', '202146700': 'A Anlage (alt, bis 446.000)' };\nlet suchauftrag = (text.match(/^Ihre Suche:\\s*(.+)$/mi) || [])[1] || null;\nif (!suchauftrag && ssid && SAVED_SEARCH[ssid]) suchauftrag = SAVED_SEARCH[ssid];\nif (!suchauftrag) {\n  const m = text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/gespeicherten Suche (.+?)\\n/i);\n  suchauftrag = m ? m[1].trim() : null;\n}\nconst suchbeschreibung = (text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/gespeicherten Suche (.+?)\\n/i) || [])[1] || null;\n\nconst mailart = /wurde erfolgreich gespeichert|Neuer Suchauftrag wurde angelegt/i.test(text + subject)\n  ? 'bestaetigung' : (/fulfillment_update|neue Angebote|neues Angebot|Ihre Suche:/i.test(text + subject) ? 'benachrichtigung' : 'unbekannt');\n\n// Anzeigenbloecke: beginnen mit \"Titel:\" und enden vor dem naechsten \"Titel:\" oder dem Fusszeilenbeginn\nconst cut = text.search(/\\n\\s*(Datenschutz|Impressum|© 1999|ImmoScout24 informiert)/i);\nconst body = cut > 0 ? text.slice(0, cut) : text;\nconst blocks = body.split(/\\n(?=Titel:\\s)/).filter(b => /^Titel:/m.test(b));\n\nfor (const b of blocks) {\n  const titel = field(b, 'Titel');\n  const link = field(b, 'Link');\n  const adresse = field(b, 'Adresse');\n  const kaufpreis = field(b, 'Kaufpreis');\n  const wohnflaeche = field(b, 'Wohnfläche');\n  const zimmer = field(b, 'Zimmer');\n  const grundstueck = field(b, 'Grundstück');\n  const exposeId = (link.wert && (link.wert.match(/\\/expose\\/(\\d+)/) || [])[1]) || null;\n\n  // Ausstattungszeile: die erste Zeile ohne \"Label:\" nach den Feldzeilen\n  const lines = b.split('\\n').map(x => x.trim()).filter(Boolean);\n  const merkmalZeile = lines.find(l => !/^(Titel|Link|Adresse|Kaufpreis|Wohnfläche|Zimmer|Grundstück):/i.test(l)) || null;\n  const merkmale = merkmalZeile ? merkmalZeile.split(',').map(x => x.trim()).filter(Boolean) : [];\n  const provisionsfrei = merkmale.some(m => /provisionsfrei/i.test(m));\n\n  const adr = parseAddress(adresse.wert);\n  const kp = toNumber(kaufpreis.wert);\n  const wf = toNumber(wohnflaeche.wert);\n\n  out.push({\n    json: {\n      quelle, quelle_tag, mailart, suchauftrag, saved_search_id: ssid,\n      mail_uid: item.uid || null, mail_datum: item.date || null,\n      objekt_schluessel: exposeId ? `is24:${exposeId}` : null,          // R14, stabiler Schluessel\n      expose_id: exposeId,\n      link: link.wert || null,                                            // nur Verweis, kein Abruf\n      titel: titel.wert || FEHLT,\n      strasse: adr.strasse || FEHLT,\n      hausnummer: adr.hausnummer || FEHLT,                                // S2 schwaerzt vor dem Modellaufruf (R19)\n      stadtteil: adr.stadtteil || FEHLT,\n      ort: adr.ort || FEHLT,\n      kaufpreis_eur: kp ?? FEHLT,\n      wohnflaeche_qm: wf ?? FEHLT,\n      zimmer: toNumber(zimmer.wert) ?? FEHLT,\n      grundstueck_qm: toNumber(grundstueck.wert) ?? FEHLT,\n      preis_je_qm: (kp && wf) ? Math.round((kp / wf) * 100) / 100 : FEHLT,\n      provision_kaeufer_pct: provisionsfrei ? 0 : FEHLT,                  // Rueckfall 3.57 setzt C2, nicht der Parser\n      merkmale,\n      belege: {                                                           // R1: Zitat je Feld, Belegklasse B1 (Anzeige)\n        kaufpreis_eur: kaufpreis.zitat, wohnflaeche_qm: wohnflaeche.zitat, zimmer: zimmer.zitat,\n        adresse: adresse.zitat, provision_kaeufer_pct: provisionsfrei ? merkmalZeile : null, titel: titel.zitat,\n      },\n      belegklasse: 'B1',\n      parser_version: 'is24-2026-09-10.3',\n      roh_block_sha256: null,                                             // setzt der Folgeknoten (Crypto), fuer den Aenderungsvergleich\n    },\n  });\n}\n\nif (blocks.length === 0 && mailart !== 'unbekannt') {\n  // Sichtbares Scheitern (R17): Suchauftragsmail ohne erkannten Anzeigenblock -> Item mit Stoerungsmarke, kein stilles Leerlaufen\n  out.push({ json: { quelle, mailart, suchauftrag, mail_uid: item.uid || null, stoerung: 'parser_keine_anzeigen', parser_version: 'is24-2026-09-10.3', textlaenge: text.length } });\n}\n// Kontomails von ImmoScout (Adresse bestaetigen, Newsletter) haben mailart 'unbekannt' und keine Bloecke: sie werden ohne Item uebergangen\n}\nreturn out;\n"
+        "jsCode": "// S1 Sammler, Schritt \"IS24-Mail parsen\" (n8n Code-Knoten, Modus \"Run Once for All Items\": eine Mail liefert viele Anzeigen)\n// Eingabe: ein Item je Mail mit den Feldern textContent (bevorzugt), htmlContent, subject, from, to, date, uid\n// Ausgabe: ein Item je Anzeige mit typisierten Feldern nach R6 (Wert oder \"fehlt in der Anzeige\"), Belegzitat je Feld (R1)\n// Quelle und Suchauftrag kommen aus Empfaengeradresse (Plus-Tag) und Betreff/Text, nie aus dem Anzeigentext (R20).\n// Keine URL aus der Mail wird abgerufen. Der Link wird nur als Schluessel (Expose-ID) und als Verweis gespeichert.\n\nconst FEHLT = 'fehlt in der Anzeige';\n\nfunction plainFromHtml(html) {\n  if (!html) return '';\n  return html\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<\\/(p|div|tr|li|h\\d)>/gi, '\\n')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, \"'\").replace(/&quot;/g, '\"')\n    .replace(/[ \\t]+/g, ' ')\n    .replace(/\\n\\s*\\n+/g, '\\n');\n}\n\nfunction toNumber(s) {\n  // \"598.000 €\" -> 598000 ; \"94 m²\" -> 94 ; \"3,5\" -> 3.5\n  if (s == null) return null;\n  const m = String(s).replace(/ /g, ' ').match(/-?\\d{1,3}(?:\\.\\d{3})*(?:,\\d+)?|-?\\d+(?:,\\d+)?/);\n  if (!m) return null;\n  return Number(m[0].replace(/\\./g, '').replace(',', '.'));\n}\n\nfunction field(block, label) {\n  // Zeile \"Label: Wert\" -> { wert, zitat } ; fehlt -> { wert: null, zitat: null }\n  const re = new RegExp('^' + label + ':\\\\s*(.+)$', 'mi');\n  const m = block.match(re);\n  return m ? { wert: m[1].trim(), zitat: m[0].trim() } : { wert: null, zitat: null };\n}\n\nconst STADTTEIL_NORM = { 'neustadt/nord': 'Neustadt-Nord', 'neustadt/süd': 'Neustadt-Süd', 'neustadt/sued': 'Neustadt-Süd', 'altstadt/nord': 'Altstadt-Nord', 'altstadt/süd': 'Altstadt-Süd' };\nfunction normStadtteil(s) { if (!s) return s; const k = s.toLowerCase().trim(); return STADTTEIL_NORM[k] || s.trim(); }\n\nfunction parseAddress(a) {\n  // \"Vorgebirgstraße 334, Zollstock, Köln\" | \"Leyendeckerstraße, Ehrenfeld (Ortsteil), Köln\" | \"Ehrenfeld, Köln\"\n  const out = { strasse: null, hausnummer: null, stadtteil: null, ort: null };\n  if (!a) return out;\n  const parts = a.split(',').map(x => x.trim()).filter(Boolean);\n  out.ort = parts.length ? parts[parts.length - 1] : null;\n  if (parts.length >= 3) {\n    out.stadtteil = normStadtteil(parts[parts.length - 2].replace(/\\s*\\(Ortsteil\\)\\s*/i, ''));\n    const sm = parts[0].match(/^(.*?)(?:\\s+(\\d+[a-zA-Z]?(?:\\s*-\\s*\\d+[a-zA-Z]?)?))?$/);\n    out.strasse = sm ? sm[1].trim() || null : parts[0];\n    out.hausnummer = sm && sm[2] ? sm[2].trim() : null;\n  } else if (parts.length === 2) {\n    out.stadtteil = normStadtteil(parts[0].replace(/\\s*\\(Ortsteil\\)\\s*/i, ''));\n  }\n  return out;\n}\n\nconst out = [];\nfor (const _it of $input.all()) {\nconst item = _it.json;\nconst text = (item.textContent && item.textContent.trim().length > 200) ? item.textContent : plainFromHtml(item.htmlContent || '');\nconst to = String(item.to || item['to'] || '');\nconst tagMatch = to.match(/\\+([a-z0-9-]+)@/i);\nconst quelle_tag = tagMatch ? tagMatch[1].toLowerCase() : null;               // \"is24\"\nconst fromDomain = (String(item.from || '').match(/@([a-z0-9.-]+)/i) || [])[1] || null;\nconst quelle = quelle_tag === 'is24' || /immobilienscout24\\.de$/i.test(fromDomain || '') ? 'is24' : (quelle_tag || 'unbekannt');\n\n// Suchauftrag: Name im Text (\"Deine suche ... wurde erfolgreich gespeichert\") oder im Betreff; sonst savedSearchId aus dem ersten Link\nconst subject = String(item.subject || '');\nconst ssid = (text.match(/savedSearchId=(\\d+)/) || [])[1] || null;\n// Name des Suchauftrags: Benachrichtigungen tragen \"Ihre Suche: <Name>\", die Bestaetigung nur die Suchbeschreibung.\n// Rueckfall ist die Zuordnung ueber savedSearchId (Stand 10.09.2026, aus den ersten Mails; neue Suchauftraege hier nachtragen).\nconst SAVED_SEARCH = { '202146772': 'A Anlage', '202146663': 'B Haus', '202146700': 'A Anlage (alt, bis 446.000)' };\nlet suchauftrag = (text.match(/^Ihre Suche:\\s*(.+)$/mi) || [])[1] || null;\nif (!suchauftrag && ssid && SAVED_SEARCH[ssid]) suchauftrag = SAVED_SEARCH[ssid];\nif (!suchauftrag) {\n  const m = text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/gespeicherten Suche (.+?)\\n/i);\n  suchauftrag = m ? m[1].trim() : null;\n}\nconst suchbeschreibung = (text.match(/Deine suche (.+?) wurde erfolgreich gespeichert/i) || text.match(/gespeicherten Suche (.+?)\\n/i) || [])[1] || null;\n\nconst mailart = /wurde erfolgreich gespeichert|Neuer Suchauftrag wurde angelegt/i.test(text + subject)\n  ? 'bestaetigung' : (/fulfillment_update|neue Angebote|neues Angebot|Ihre Suche:/i.test(text + subject) ? 'benachrichtigung' : 'unbekannt');\n\n// Anzeigenbloecke: beginnen mit \"Titel:\" und enden vor dem naechsten \"Titel:\" oder dem Fusszeilenbeginn\nconst cut = text.search(/\\n\\s*(Datenschutz|Impressum|© 1999|ImmoScout24 informiert)/i);\nconst body = cut > 0 ? text.slice(0, cut) : text;\nconst blocks = body.split(/\\n(?=Titel:\\s)/).filter(b => /^Titel:/m.test(b));\n\nfor (const b of blocks) {\n  const titel = field(b, 'Titel');\n  const link = field(b, 'Link');\n  const adresse = field(b, 'Adresse');\n  const kaufpreis = field(b, 'Kaufpreis');\n  const wohnflaeche = field(b, 'Wohnfläche');\n  const zimmer = field(b, 'Zimmer');\n  const grundstueck = field(b, 'Grundstück');\n  const exposeId = (link.wert && (link.wert.match(/\\/expose\\/(\\d+)/) || [])[1]) || null;\n\n  // Ausstattungszeile: die erste Zeile ohne \"Label:\" nach den Feldzeilen\n  const lines = b.split('\\n').map(x => x.trim()).filter(Boolean);\n  const merkmalZeile = lines.find(l => !/^(Titel|Link|Adresse|Kaufpreis|Wohnfläche|Zimmer|Grundstück):/i.test(l)) || null;\n  const merkmale = merkmalZeile ? merkmalZeile.split(',').map(x => x.trim()).filter(Boolean) : [];\n  const provisionsfrei = merkmale.some(m => /provisionsfrei/i.test(m));\n\n  const adr = parseAddress(adresse.wert);\n  const kp = toNumber(kaufpreis.wert);\n  const wf = toNumber(wohnflaeche.wert);\n\n  out.push({\n    json: {\n      quelle, quelle_tag, mailart, suchauftrag, saved_search_id: ssid,\n      mail_uid: item.uid || null, mail_datum: item.date || null,\n      objekt_schluessel: exposeId ? `is24:${exposeId}` : null,          // R14, stabiler Schluessel\n      expose_id: exposeId,\n      link: link.wert || null,                                            // nur Verweis, kein Abruf\n      titel: titel.wert || FEHLT,\n      strasse: adr.strasse || FEHLT,\n      hausnummer: adr.hausnummer || FEHLT,                                // S2 schwaerzt vor dem Modellaufruf (R19)\n      stadtteil: adr.stadtteil || FEHLT,\n      ort: adr.ort || FEHLT,\n      kaufpreis_eur: kp ?? FEHLT,\n      wohnflaeche_qm: wf ?? FEHLT,\n      zimmer: toNumber(zimmer.wert) ?? FEHLT,\n      grundstueck_qm: toNumber(grundstueck.wert) ?? FEHLT,\n      preis_je_qm: (kp && wf) ? Math.round((kp / wf) * 100) / 100 : FEHLT,\n      provision_kaeufer_pct: provisionsfrei ? 0 : FEHLT,                  // Rueckfall 3.57 setzt C2, nicht der Parser\n      merkmale,\n      belege: {                                                           // R1: Zitat je Feld, Belegklasse B1 (Anzeige)\n        kaufpreis_eur: kaufpreis.zitat, wohnflaeche_qm: wohnflaeche.zitat, zimmer: zimmer.zitat,\n        adresse: adresse.zitat, provision_kaeufer_pct: provisionsfrei ? merkmalZeile : null, titel: titel.zitat,\n      },\n      belegklasse: 'B1',\n      parser_version: 'is24-2026-09-10.3',\n      roh_block_sha256: null,                                             // setzt der Folgeknoten (Crypto), fuer den Aenderungsvergleich\n    },\n  });\n}\n\nif (blocks.length === 0 && mailart !== 'unbekannt') {\n  // Sichtbares Scheitern (R17): Suchauftragsmail ohne erkannten Anzeigenblock -> Item mit Stoerungsmarke, kein stilles Leerlaufen\n  out.push({ json: { quelle, mailart, suchauftrag, mail_uid: item.uid || null, stoerung: 'parser_keine_anzeigen', parser_version: 'is24-2026-09-10.3', textlaenge: text.length } });\n}\n// Kontomails von ImmoScout (Adresse bestaetigen, Newsletter) haben mailart 'unbekannt' und keine Bloecke: sie werden ohne Item uebergangen\n}\nreturn out;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        896,
-        0
+        -1120,
+        256
       ],
-      "id": "ffe40692-54b6-453a-a3e2-5bc6bfd64255",
+      "id": "d67e6c83-b985-4083-8a72-af92bfdfcc14",
       "name": "IS24-Mail parsen",
       "alwaysOutputData": true
     },
@@ -94,10 +92,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1120,
-        0
+        -896,
+        256
       ],
-      "id": "6908ae6c-73a3-4e0d-8bb5-c785ef598c1c",
+      "id": "e7ab2d69-a8b8-4235-a5d2-fa624e3dea96",
       "name": "Hash und Zustand"
     },
     {
@@ -128,10 +126,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1344,
-        0
+        -672,
+        256
       ],
-      "id": "7732b99c-321d-4e2b-87f8-b55417f8b504",
+      "id": "5f50901e-adeb-4426-9895-6952e122906e",
       "name": "Anzeige oder Stoerung?"
     },
     {
@@ -143,10 +141,10 @@
       "type": "n8n-nodes-base.removeDuplicates",
       "typeVersion": 2,
       "position": [
-        1568,
-        -96
+        -448,
+        160
       ],
-      "id": "0c6d981c-c082-4dea-85ff-6e2fdc5d4d08",
+      "id": "7fc66526-8448-46ac-8c88-3e9abfb139b8",
       "name": "Nur neue Objekte",
       "alwaysOutputData": true
     },
@@ -471,10 +469,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2016,
-        -256
+        0,
+        0
       ],
-      "id": "ef77ad15-5ecd-4895-ba37-f09d45789c2f",
+      "id": "b2888d2f-587f-44ea-8fed-002710bed6a0",
       "name": "objekt einfuegen"
     },
     {
@@ -567,10 +565,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2240,
-        -256
+        224,
+        0
       ],
-      "id": "780dca9d-5920-4420-b2d0-51d3f419ce39",
+      "id": "38ca227e-4eff-471a-b4f4-6cfba3c45c0c",
       "name": "Ereignis NEU"
     },
     {
@@ -663,10 +661,10 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1568,
-        128
+        -448,
+        384
       ],
-      "id": "b50dfd0e-6b04-4920-9d2b-56313156e14e",
+      "id": "474c6e28-d9d0-4e3a-a2e9-569b3b33037e",
       "name": "Ereignis STOERUNG"
     },
     {
@@ -697,10 +695,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1792,
-        -96
+        -224,
+        160
       ],
-      "id": "d25d119b-de37-471e-be27-df7d45028d3f",
+      "id": "42d95fc2-7496-4cae-9242-d0765bcbd581",
       "name": "Neue Objekte?"
     },
     {
@@ -710,10 +708,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2240,
-        -96
+        224,
+        160
       ],
-      "id": "681b0387-9fe4-4795-aceb-88b96d162b3f",
+      "id": "70e1384c-7763-4769-b4bc-ee2f735d38ed",
       "name": "UIDs einsammeln"
     },
     {
@@ -745,15 +743,14 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2464,
-        64
+        432,
+        256
       ],
-      "id": "4dbfb170-f32e-43d7-9645-7435753553be",
+      "id": "5ff65284-11d2-4ce0-b6e9-c1874ab89b03",
       "name": "Hat Archiv-UIDs?"
     },
     {
       "parameters": {
-        "authentication": "coreImapAccount",
         "resource": "email",
         "operation": "setEmailFlags",
         "mailboxPath": {
@@ -769,10 +766,10 @@
       "type": "n8n-nodes-imap.imap",
       "typeVersion": 1,
       "position": [
-        2464,
-        -96
+        464,
+        464
       ],
-      "id": "39cf331a-6e08-4feb-a023-e6af09be28b6",
+      "id": "0f5776ee-e33e-42cd-aaf4-1fe60669ee6f",
       "name": "IMAP: als gelesen markieren",
       "retryOnFail": true,
       "maxTries": 3,
@@ -786,7 +783,6 @@
     },
     {
       "parameters": {
-        "authentication": "coreImapAccount",
         "resource": "email",
         "operation": "moveEmail",
         "sourceMailbox": {
@@ -797,18 +793,18 @@
         "emailUid": "={{ $('UIDs einsammeln').first().json.uid_list }}",
         "destinationMailbox": {
           "__rl": true,
-          "value": "Immo/Archiv",
+          "value": "INBOX/Archiv",
           "mode": "list",
-          "cachedResultName": "Immo/Archiv"
+          "cachedResultName": "INBOX/Archiv"
         }
       },
       "type": "n8n-nodes-imap.imap",
       "typeVersion": 1,
       "position": [
-        2688,
-        -96
+        624,
+        688
       ],
-      "id": "77cac8b3-6154-4819-8e0b-325ca1e1df37",
+      "id": "b0ea8058-17a7-45fd-8b41-033ebf0e08d2",
       "name": "IMAP: nach Immo/Archiv",
       "retryOnFail": true,
       "maxTries": 3,
@@ -849,15 +845,14 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2912,
-        -96
+        1120,
+        272
       ],
-      "id": "323ba12f-d2d7-4717-8232-ddfde01acc0d",
+      "id": "9f361369-4e5f-4ee5-bff9-a20b7625a89a",
       "name": "Hat DLQ-UIDs?"
     },
     {
       "parameters": {
-        "authentication": "coreImapAccount",
         "resource": "email",
         "operation": "moveEmail",
         "sourceMailbox": {
@@ -868,18 +863,18 @@
         "emailUid": "={{ $('UIDs einsammeln').first().json.dlq_list }}",
         "destinationMailbox": {
           "__rl": true,
-          "value": "Immo/DLQ",
+          "value": "INBOX/DLQ",
           "mode": "list",
-          "cachedResultName": "Immo/DLQ"
+          "cachedResultName": "INBOX/DLQ"
         }
       },
       "type": "n8n-nodes-imap.imap",
       "typeVersion": 1,
       "position": [
-        2688,
-        224
+        720,
+        144
       ],
-      "id": "74527c79-aeca-43b3-b507-10d625b42660",
+      "id": "9eacd5e2-b387-47f5-8fa5-49603812af4e",
       "name": "IMAP: Stoerung nach Immo/DLQ",
       "retryOnFail": true,
       "maxTries": 3,
@@ -901,10 +896,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2240,
-        160
+        80,
+        592
       ],
-      "id": "b8267d9d-4c36-4338-a01c-c5f87b1533c1",
+      "id": "e5433ba0-099f-403e-b179-e685bfef805f",
       "name": "Sticky: Mailabschluss"
     }
   ],
@@ -1104,17 +1099,26 @@
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
-    "timezone": "Europe/Berlin",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
     "errorWorkflow": "HLOJsWSboUnvLnFf",
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
   },
+  "versionId": "cd90a4ab-b8a2-429e-8e5a-855e85147a0e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3ba3693a6598b984c80e0c7d3333d813906a5aabf2fd2a5d2932981d4ef5480e"
+  },
+  "nodeGroups": [],
+  "id": "YtvJLErRSAHPAl5P",
   "tags": []
 }
