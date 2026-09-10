@@ -91,3 +91,13 @@ Test am 10.09.2026: 7 Mails aus dem Erstlauf ergaben 93 Objekte. Zwei Echtzeitma
 Suchauftragsname: Benachrichtigungen tragen die Zeile "Ihre Suche: <Name>". Bestätigungsmails tragen den Namen nicht. Hier ordnet der Parser über savedSearchId zu (Tabelle SAVED_SEARCH im Parser, is24-2026-09-10.3). Neue Suchaufträge sind dort nachzutragen. Die 3 Zeilen mit suchauftrag "löschen" aus dem Erstlauf können von Hand auf "A Anlage" gesetzt werden.
 
 Nächster Baustein: S3/C2 (Bewertung gegen profil-a und profil-b, Referenzpreis nach R4) und S4 Telegram-Karte. Danach S2 Schwärzer und Referenzband (Phase 1b).
+
+## Nachtrag 10.09.2026, Abend: Referenzband und S3 v2
+
+Belegschrank gefuellt (quellen/manifest.yaml). Beleg irw_nrw_2026: Immobilienrichtwerte NRW, Stichtag 01.01.2026, offene Daten dl-de/zero-2-0, SHA-256 im Manifest. Der Auszug Koeln hat 128 Zonen, davon 59 fuer Eigentumswohnungen und 69 fuer Ein- und Zweifamilienhaeuser. Beleg gmb_koeln_2026: Grundstuecksmarktbericht Koeln 2026. Die PDF bleibt bei Christoph, die Auszuege liegen als JSON unter quellen/referenz/. Die Zuordnung Stadtteil zu Zonen laeuft ueber die Zonennamen (stadtteil_zonen.yaml). Die Pruefung gegen die Stadtteilgrenzen ist offen. Hahnwald hat keine Richtwertzone. Dort greift die Kaufpreisspanne des Marktberichts.
+
+S3 Buchhalter v2 liegt als n8n/s3-buchhalter.json bereit. Der Code entsteht aus build_s3.py und build_referenzband.py. Der Referenzpreis ist die Wohnflaeche mal dem Median der angepassten Immobilienrichtwerte des Stadtteils. Angepasst wird nur mit Wohnflaeche und Grundstueck. Alle anderen Merkmale bleiben Normobjekt. Der Deckel nach R4 gilt am Referenzpreis. Die Zustaende sind ausgeschlossen_referenzpreis, verhandlungsfall mit Zielgebot und unter_deckel. Neubau und Erstbezug bleiben beim Notbehelf am Angebotspreis, weil die Richtwerte nur fuer Weiterverkaeufe gelten. Der Preisabstand liefert jetzt Punkte. Die Belegdichte steigt auf 0,40 bei Profil A und auf 0,50 bis 0,60 bei Profil B. S4 v3.1 zeigt Referenz, Band, Abstand und Zielgebot.
+
+Entscheidungen: E34 Der Digest sortiert je Profil erst nach Deckelstatus, dann nach Vorscore. E35 Zwangsversteigerungen sind eine Ausbaustufe (Vorschlag Christoph, noch nicht im Konzept). Quellen sind das ZVG-Portal und die Terminliste des Amtsgerichts Koeln. Der Termin liegt nach Phase 2.
+
+Offen: In objekt sechs Spalten anlegen (referenzpreis_eur, referenz_qm, preisabstand_pct, zielgebot_eur als number; referenz_band, referenz_quelle als string). Danach S3 v2 importieren und die 90 Objekte einmal neu bewerten lassen (zustand auf neu setzen). Die Geometrie-Pruefung der Stadtteilzuordnung bleibt offen.
