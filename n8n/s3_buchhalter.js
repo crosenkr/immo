@@ -1,0 +1,185 @@
+// GENERIERT aus quellen/referenz/ (stadtteil_zonen.yaml, irw_koeln_2026_zonen.json, gmb2026_*_stadtteile.json) am 2026-09-10. Nicht von Hand aendern.
+const REF_IRW = {"Altstadt-Nord":{"etw":{"z":[[4640,"Eigelstein",60,0],[5240,"Altstadt Nord",60,0]]}},"Altstadt-Süd":{"etw":{"z":[[4610,"Altstadt Süd",60,0],[4990,"Severins-Viertel",60,0],[10400,"Rheinauhafen",135,0]]}},"Bayenthal":{"etw":{"z":[[4800,"Bayenthal",60,0]]},"haus":{"z":[[11700,"Marienburg / Bayenthal Süd",220,1200]]}},"Bickendorf":{"haus":{"z":[[5800,"Bickendorf",80,150]]}},"Bilderstöckchen":{"etw":{"z":[[3600,"Bilderstöckchen",100,150]]},"haus":{"z":[[4300,"Bilderstöckchen",100,150]]}},"Blumenberg":{"haus":{"z":[[3600,"Blumenberg",120,150]]}},"Bocklemünd":{"haus":{"z":[[3600,"Bocklemünd / Mengenich",100,250]]}},"Bocklemünd/Mengenich":{"haus":{"z":[[3600,"Bocklemünd / Mengenich",100,250]]}},"Braunsfeld":{"etw":{"z":[[4530,"Braunsfeld Nord",60,0],[5140,"Braunsfeld Süd",60,0]]},"haus":{"z":[[7500,"Lindenthal / Braunsfeld Süd",220,450]]}},"Brück":{"haus":{"z":[[4300,"Brück",120,600]]}},"Buchheim":{"etw":{"z":[[3130,"Buchheim",120,250]]},"haus":{"z":[[3400,"Buchheim",120,250]]}},"Chorweiler":{"haus":{"z":[[3400,"Chorweiler",140,250]]}},"Dellbrück":{"haus":{"z":[[3500,"Dellbrück / Holweide",140,150],[4400,"Dellbrück Süd",120,250],[4400,"Dellbrück West",140,450]]}},"Deutz":{"etw":{"z":[[4780,"Deutz",60,0]]}},"Dünnwald":{"haus":{"z":[[3200,"Höhenhaus / Dünnwald",120,250],[3800,"Dünnwald West",120,450],[4100,"Dünnwald Ost",120,600]]}},"Ehrenfeld":{"etw":{"z":[[3610,"Ehrenfeld Kanalstraße",35,0],[4500,"Ehrenfeld",60,0],[4610,"Ehrenfeld Lukasstraße",60,0],[4810,"Ehrenfeld West",60,0],[4900,"Ehrenfeld Süd",60,0]]}},"Eil":{"etw":{"z":[[2830,"Eil/Porz Ost/Urbach",60,0]]},"haus":{"z":[[3200,"Eil / Finkenberg / Porz / Urbach / Elsdorf",120,250]]}},"Elsdorf":{"haus":{"z":[[3200,"Eil / Finkenberg / Porz / Urbach / Elsdorf",120,250]]}},"Ensen":{"etw":{"z":[[2770,"Westhoven/Ensen",60,0]]},"haus":{"z":[[3900,"Westhoven / Ensen",120,250]]}},"Esch/Auweiler":{"haus":{"z":[[3700,"Auweiler",100,250],[3700,"Esch",100,250]]}},"Finkenberg":{"haus":{"z":[[3200,"Eil / Finkenberg / Porz / Urbach / Elsdorf",120,250]]}},"Flittard":{"haus":{"z":[[4200,"Flittard",100,600]]}},"Godorf":{"haus":{"z":[[2800,"Godorf",120,250]]}},"Grengel":{"etw":{"z":[[2720,"Wahn/Wahnheide/Grengel",60,0]]},"haus":{"z":[[3200,"Grengel / Wahnheide / Wahn / Lind",120,250]]}},"Heimersdorf":{"haus":{"z":[[3800,"Heimersdorf",100,250]]}},"Heumar":{"haus":{"z":[[3700,"Rath / Heumar",120,450]]}},"Holweide":{"etw":{"z":[[3040,"Holweide",60,0]]},"haus":{"z":[[3500,"Dellbrück / Holweide",140,150]]}},"Humboldt/Gremberg":{"etw":{"z":[[3010,"Humboldt/Gremberg",60,0]]}},"Höhenberg":{"etw":{"z":[[3200,"Höhenberg/Vingst",60,0]]}},"Höhenhaus":{"haus":{"z":[[3200,"Höhenhaus / Dünnwald",120,250],[3400,"Höhenhaus West",140,250],[3600,"Höhenhaus",120,250],[3600,"Höhenhaus Süd",120,250]]}},"Immendorf":{"haus":{"z":[[3400,"Immendorf",140,350]]}},"Junkersdorf":{"etw":{"z":[[3010,"Stüttgerhofsweg",60,0],[4280,"Junkersdorf",60,0]]},"haus":{"z":[[6200,"Junkersdorf I",140,250],[7900,"Junkersdorf II",220,600],[9100,"Junkersdorf III",220,600],[9500,"Junkersdorf IIII",140,150]]}},"Kalk":{"etw":{"z":[[3060,"Kalk",60,0]]}},"Klettenberg":{"etw":{"z":[[4770,"Klettenberg",160,250]]},"haus":{"z":[[6700,"Klettenberg",160,250]]}},"Langel":{"haus":{"z":[[3900,"Langel",120,350]]}},"Lind":{"haus":{"z":[[3200,"Grengel / Wahnheide / Wahn / Lind",120,250]]}},"Lindenthal":{"etw":{"z":[[5190,"Lindenthal",60,0]]},"haus":{"z":[[7500,"Lindenthal / Braunsfeld Süd",220,450]]}},"Lindweiler":{"haus":{"z":[[3700,"Lindweiler",100,250]]}},"Longerich":{"haus":{"z":[[4600,"Longerich",100,250]]}},"Lövenich":{"haus":{"z":[[4500,"Lövenich",120,250]]}},"Marienburg":{"etw":{"z":[[5930,"Marienburg",60,0]]},"haus":{"z":[[11700,"Marienburg / Bayenthal Süd",220,1200]]}},"Mauenheim":{"etw":{"z":[[3750,"Mauenheim/Rennbahn-Viertel",60,0]]},"haus":{"z":[[4500,"Mauenheim",100,150]]}},"Mengenich":{"haus":{"z":[[3600,"Bocklemünd / Mengenich",100,250]]}},"Merheim":{"etw":{"z":[[3230,"Merheim",120,450]]},"haus":{"z":[[3800,"Merheim",120,450]]}},"Meschenich":{"haus":{"z":[[2800,"Meschenich",120,350]]}},"Mülheim":{"etw":{"z":[[3480,"Mülheim",60,0],[3810,"Mülheim West",60,0]]}},"Müngersdorf":{"haus":{"z":[[7000,"Müngersdorf Nord",220,800]]}},"Neubrück":{"etw":{"z":[[2590,"Neubrück",120,350]]},"haus":{"z":[[3700,"Neubrück",120,350]]}},"Neuehrenfeld":{"etw":{"z":[[4840,"Neuehrenfeld",180,250]]},"haus":{"z":[[5200,"Neuehrenfeld",180,250]]}},"Neustadt-Nord":{"etw":{"z":[[4760,"Agnes-Viertel Ost",60,0],[5390,"Gerichtsviertel",60,0],[5550,"Belgisches Viertel",60,0]]}},"Neustadt-Süd":{"etw":{"z":[[5010,"Rathenau-Viertel",60,0],[5070,"Volksgarten-Viertel",60,0],[5760,"Südstadt",60,0]]}},"Niehl":{"etw":{"z":[[3470,"Niehl",60,0],[3760,"Nordpark",60,0]]}},"Nippes":{"etw":{"z":[[4650,"Nippes",60,0]]}},"Ossendorf":{"haus":{"z":[[3900,"Ossendorf",120,150]]}},"Ostheim":{"etw":{"z":[[2520,"Ostheim",140,250]]},"haus":{"z":[[3500,"Ostheim",140,250]]}},"Pesch":{"etw":{"z":[[2820,"Pesch",100,250]]},"haus":{"z":[[3900,"Pesch",100,250]]}},"Poll":{"haus":{"z":[[4300,"Poll Süd",120,350],[4500,"Poll Nord",120,250]]}},"Porz":{"etw":{"z":[[2810,"Porz/Zündorf Nord",60,0],[2830,"Eil/Porz Ost/Urbach",60,0]]},"haus":{"z":[[3200,"Eil / Finkenberg / Porz / Urbach / Elsdorf",120,250]]}},"Rath":{"haus":{"z":[[3700,"Rath / Heumar",120,450]]}},"Rath/Heumar":{"haus":{"z":[[3700,"Rath / Heumar",120,450]]}},"Riehl":{"etw":{"z":[[3930,"Riehl Niederländer Viertel",60,0],[4530,"Riehl Süd",60,0]]}},"Rodenkirchen":{"etw":{"z":[[3950,"Rodenkirchen",60,0]]},"haus":{"z":[[5600,"Rodenkirchen Ost",220,600],[6000,"Rodenkirchen Nord",140,350],[8300,"Rodenkirchen Süd",100,250]]}},"Roggendorf/Thenhoven":{"haus":{"z":[[3200,"Roggendorf / Thenhoven",140,350]]}},"Rondorf":{"haus":{"z":[[4200,"Rondorf",120,250]]}},"Seeberg":{"haus":{"z":[[4200,"Seeberg",100,350]]}},"Stammheim":{"haus":{"z":[[3200,"Stammheim Nord",140,250],[3500,"Stammheim Süd",120,350]]}},"Sülz":{"etw":{"z":[[3510,"Sülz Justiz Viertel",60,0],[5250,"Sülz",140,250]]},"haus":{"z":[[7000,"Sülz",140,250]]}},"Sürth":{"etw":{"z":[[4440,"Sürth/Weiß",60,0]]},"haus":{"z":[[4700,"Sürth",140,250]]}},"Urbach":{"etw":{"z":[[2270,"Urbach Süd",60,0],[2830,"Eil/Porz Ost/Urbach",60,0]]},"haus":{"z":[[3200,"Eil / Finkenberg / Porz / Urbach / Elsdorf",120,250]]}},"Vingst":{"etw":{"z":[[3200,"Höhenberg/Vingst",60,0]]}},"Vogelsang":{"haus":{"z":[[5200,"Vogelsang",120,600]]}},"Volkhoven/Weiler":{"haus":{"z":[[3500,"Volkhoven / Weiler",140,350]]}},"Wahn":{"etw":{"z":[[2720,"Wahn/Wahnheide/Grengel",60,0]]},"haus":{"z":[[3200,"Grengel / Wahnheide / Wahn / Lind",120,250]]}},"Wahnheide":{"etw":{"z":[[2720,"Wahn/Wahnheide/Grengel",60,0]]},"haus":{"z":[[3200,"Grengel / Wahnheide / Wahn / Lind",120,250]]}},"Weiden":{"etw":{"z":[[3090,"Weiden Süd",100,0],[3390,"Weiden Nord",140,350]]},"haus":{"z":[[5000,"Weiden Nord",140,350],[5400,"Weiden Ost",120,250],[5400,"Weiden West",120,450]]}},"Weidenpesch":{"etw":{"z":[[3030,"Weidenpesch",60,0],[3750,"Mauenheim/Rennbahn-Viertel",60,0]]}},"Weiß":{"etw":{"z":[[4440,"Sürth/Weiß",60,0]]},"haus":{"z":[[5900,"Weiß",100,350]]}},"Westhoven":{"etw":{"z":[[2770,"Westhoven/Ensen",60,0]]},"haus":{"z":[[3900,"Westhoven / Ensen",120,250]]}},"Widdersdorf":{"haus":{"z":[[4800,"Widdersdorf Alt",120,600],[7200,"Widdersdorf Neu",120,250]]}},"Worringen":{"haus":{"z":[[3400,"Worringen Ost",120,450],[3400,"Worringen West",100,250]]}},"Zollstock":{"etw":{"z":[[3520,"Zollstock Vorgebirgspark",60,0],[4260,"Zollstock",60,0]]}},"Zündorf":{"etw":{"z":[[2810,"Porz/Zündorf Nord",60,0],[3260,"Zündorf",120,150]]},"haus":{"z":[[3600,"Zündorf",120,150]]}}};
+const REF_GMB = {"Altstadt-Nord":{"etw":[5894,2592,11737,63]},"Altstadt-Süd":{"etw":[5841,1346,19630,126]},"Deutz":{"etw":[4690,2550,7626,40]},"Neustadt-Nord":{"etw":[5571,1471,9268,163]},"Neustadt-Süd":{"etw":[5766,1783,14545,216]},"Bayenthal":{"etw":[5921,3453,8760,30],"haus":{"Reihenmittelhaus":[4969,2257,6794,4]}},"Hahnwald":{"etw":[7952,5142,12116,5],"haus":{"freistehend":[7689,4091,15758,10]}},"Marienburg":{"etw":[5684,3145,7719,47],"haus":{"Doppelhaushälfte / Reihenendhaus":[9296,6852,11193,3]}},"Meschenich":{"etw":[2880,1795,3508,5],"haus":{"freistehend":[2303,1250,3754,11],"Doppelhaushälfte / Reihenendhaus":[3031,1795,4110,7],"Reihenmittelhaus":[2479,2049,2926,4]}},"Raderberg":{"etw":[5113,3298,6741,13]},"Raderthal":{"etw":[4628,3051,5716,11],"haus":{"freistehend":[8701,5969,10194,3],"Doppelhaushälfte / Reihenendhaus":[5012,4382,5851,4]}},"Rodenkirchen":{"etw":[4790,2256,8670,79],"haus":{"freistehend":[6874,2045,15306,19],"Doppelhaushälfte / Reihenendhaus":[6283,2846,9457,15],"Reihenmittelhaus":[5662,3414,8978,7]}},"Rondorf":{"etw":[3768,909,13537,17],"haus":{"freistehend":[3979,2837,5577,9],"Doppelhaushälfte / Reihenendhaus":[4771,3015,6056,17],"Reihenmittelhaus":[4447,3512,5320,9]}},"Sürth":{"etw":[4740,1942,9233,37],"haus":{"freistehend":[4378,2361,6818,6],"Doppelhaushälfte / Reihenendhaus":[5354,3378,7373,11],"Reihenmittelhaus":[5779,4609,7214,9]}},"Weiß":{"etw":[3811,1751,5681,16],"haus":{"freistehend":[5800,2513,8365,6],"Doppelhaushälfte / Reihenendhaus":[5324,3086,7297,16],"Reihenmittelhaus":[5252,3777,6794,7]}},"Zollstock":{"etw":[4368,1844,8862,114],"haus":{"Reihenmittelhaus":[4757,3091,5714,5]}},"Braunsfeld":{"etw":[5128,2222,8092,37]},"Junkersdorf":{"etw":[4414,1348,8353,103],"haus":{"freistehend":[7396,1874,15399,12],"Doppelhaushälfte / Reihenendhaus":[6821,4819,10018,7],"Reihenmittelhaus":[7006,5773,7815,3]}},"Klettenberg":{"etw":[5339,2858,8459,49],"haus":{"Doppelhaushälfte / Reihenendhaus":[6236,4384,7330,3],"Reihenmittelhaus":[5488,3119,6706,4]}},"Lindenthal":{"etw":[5569,1400,10137,144],"haus":{"freistehend":[9728,6706,12727,8],"Doppelhaushälfte / Reihenendhaus":[8683,3242,12433,6],"Reihenmittelhaus":[6294,5168,7742,4]}},"Lövenich":{"etw":[3627,2037,6362,28],"haus":{"freistehend":[6158,3504,8703,7],"Doppelhaushälfte / Reihenendhaus":[4187,1922,8434,14],"Reihenmittelhaus":[4489,3451,5363,10]}},"Müngersdorf":{"etw":[4789,2866,7129,19],"haus":{"freistehend":[7624,3791,11057,15],"Doppelhaushälfte / Reihenendhaus":[5899,4278,7868,5],"Reihenmittelhaus":[5558,3944,6675,3]}},"Sülz":{"etw":[5055,1617,8271,121],"haus":{"Reihenmittelhaus":[7022,5400,11000,5]}},"Weiden":{"etw":[3368,1260,6302,132],"haus":{"freistehend":[5030,3041,6346,9],"Doppelhaushälfte / Reihenendhaus":[4969,3965,7345,14]}},"Widdersdorf":{"etw":[4151,2292,6482,16],"haus":{"freistehend":[6230,2955,8262,8],"Doppelhaushälfte / Reihenendhaus":[4552,2676,6981,22],"Reihenmittelhaus":[4073,2461,5601,9]}},"Bickendorf":{"etw":[3928,3071,5161,24],"haus":{"Reihenmittelhaus":[5143,4355,5714,6]}},"Bocklemünd/Mengenich":{"etw":[3569,2057,9196,29]},"Ehrenfeld":{"etw":[5078,1528,8542,112]},"Neuehrenfeld":{"etw":[4386,1957,7266,84],"haus":{"Reihenmittelhaus":[5759,3848,7475,8]}},"Ossendorf":{"etw":[4601,3075,5750,13],"haus":{"Reihenmittelhaus":[4352,3373,6061,8]}},"Vogelsang":{"etw":[4888,4018,5540,5],"haus":{"Doppelhaushälfte / Reihenendhaus":[4073,2196,6933,12]}},"Bilderstöckchen":{"etw":[3461,1377,5439,35],"haus":{"Reihenmittelhaus":[3802,2024,5406,4]}},"Longerich":{"etw":[3274,1527,4445,23],"haus":{"freistehend":[4504,3745,5647,3],"Doppelhaushälfte / Reihenendhaus":[5146,4882,5428,3],"Reihenmittelhaus":[4143,3060,5180,11]}},"Mauenheim":{"etw":[3793,2947,4800,13],"haus":{"Reihenmittelhaus":[4900,4415,5288,4]}},"Niehl":{"etw":[3949,2049,6866,75],"haus":{"Doppelhaushälfte / Reihenendhaus":[4283,1059,6203,4],"Reihenmittelhaus":[4357,1818,6486,7]}},"Nippes":{"etw":[4590,1563,7263,141]},"Riehl":{"etw":[4606,2372,7803,54]},"Weidenpesch":{"etw":[3578,1791,5423,51]},"Chorweiler":{"etw":[2697,2000,4024,11]},"Esch/Auweiler":{"etw":[3289,2433,4638,10],"haus":{"freistehend":[4150,3291,6007,4],"Doppelhaushälfte / Reihenendhaus":[3590,2810,4561,7],"Reihenmittelhaus":[3259,2475,5091,11]}},"Fühlingen":{"etw":[4785,1736,6511,4],"haus":{"Doppelhaushälfte / Reihenendhaus":[3747,2871,4880,3]}},"Heimersdorf":{"etw":[2789,1899,3679,12],"haus":{"freistehend":[3225,2500,3952,3],"Doppelhaushälfte / Reihenendhaus":[3935,2661,5177,11],"Reihenmittelhaus":[3702,2369,5109,8]}},"Merkenich":{"etw":[3919,2774,4894,4]},"Pesch":{"etw":[2984,2096,3967,18],"haus":{"Doppelhaushälfte / Reihenendhaus":[3928,2435,5352,17],"Reihenmittelhaus":[3568,1941,4553,20]}},"Seeberg":{"etw":[2626,1560,3418,13],"haus":{"Doppelhaushälfte / Reihenendhaus":[4708,3029,7429,3],"Reihenmittelhaus":[4146,3034,5283,5]}},"Volkhoven/Weiler":{"etw":[3391,2465,4107,9]},"Worringen":{"etw":[3485,3030,4275,8],"haus":{"freistehend":[2976,1493,4400,6],"Doppelhaushälfte / Reihenendhaus":[3075,1415,4955,13],"Reihenmittelhaus":[2793,2269,3678,3]}},"Eil":{"etw":[2826,1053,4891,32],"haus":{"freistehend":[3296,2567,4286,4],"Doppelhaushälfte / Reihenendhaus":[4080,3440,5009,4],"Reihenmittelhaus":[3984,3408,4498,7]}},"Ensen":{"etw":[3385,1818,6678,24],"haus":{"Doppelhaushälfte / Reihenendhaus":[3853,3143,5900,6]}},"Finkenberg":{"etw":[2110,1170,2793,16]},"Gremberghoven":{"etw":[3129,2393,4467,12]},"Grengel":{"etw":[2637,1429,4157,21],"haus":{"freistehend":[3377,2794,3724,4],"Doppelhaushälfte / Reihenendhaus":[3628,3333,4217,3],"Reihenmittelhaus":[2719,631,4100,6]}},"Langel":{"etw":[3166,2722,3502,3]},"Lind":{"etw":[3191,2073,4087,16],"haus":{"Doppelhaushälfte / Reihenendhaus":[3575,2971,4198,5]}},"Poll":{"etw":[3576,1667,4881,29],"haus":{"freistehend":[3841,2708,5000,5],"Doppelhaushälfte / Reihenendhaus":[4143,2242,5048,6],"Reihenmittelhaus":[3897,1500,5400,8]}},"Porz":{"etw":[3140,866,6780,72],"haus":{"freistehend":[3880,3352,4679,4],"Reihenmittelhaus":[3320,2900,3762,4]}},"Urbach":{"etw":[2604,1512,4308,49],"haus":{"freistehend":[3297,2200,4711,9],"Doppelhaushälfte / Reihenendhaus":[2790,2161,4258,6],"Reihenmittelhaus":[3427,2963,4333,6]}},"Wahn":{"etw":[3364,1370,4546,16],"haus":{"Reihenmittelhaus":[3856,3324,4564,5]}},"Wahnheide":{"etw":[2898,2007,4960,34],"haus":{"Doppelhaushälfte / Reihenendhaus":[3314,2300,4250,9],"Reihenmittelhaus":[2721,2509,3010,3]}},"Westhoven":{"etw":[3292,2181,5949,25],"haus":{"Doppelhaushälfte / Reihenendhaus":[4577,4320,4797,5]}},"Zündorf":{"etw":[3166,1652,6275,52],"haus":{"freistehend":[4531,3067,6002,6],"Doppelhaushälfte / Reihenendhaus":[4013,2800,5902,15],"Reihenmittelhaus":[3157,2637,3567,8]}},"Brück":{"etw":[3233,1328,7132,31],"haus":{"freistehend":[3687,2776,5062,7],"Doppelhaushälfte / Reihenendhaus":[4210,2871,6800,13],"Reihenmittelhaus":[3533,1450,4830,6]}},"Höhenberg":{"etw":[3097,1571,5323,61]},"Humboldt/Gremberg":{"etw":[3049,1192,4233,63]},"Kalk":{"etw":[3447,1568,6728,38]},"Merheim":{"etw":[3415,900,5006,23],"haus":{"freistehend":[2857,1960,4652,6],"Doppelhaushälfte / Reihenendhaus":[3736,2100,4474,4],"Reihenmittelhaus":[3558,2656,4883,7]}},"Neubrück":{"etw":[2629,2025,3711,29],"haus":{"freistehend":[4172,3715,4694,5],"Doppelhaushälfte / Reihenendhaus":[3279,2769,3743,4],"Reihenmittelhaus":[3919,2848,5722,11]}},"Ostheim":{"etw":[2457,1258,4513,14],"haus":{"freistehend":[3858,3029,4772,5],"Doppelhaushälfte / Reihenendhaus":[3691,3473,3918,3]}},"Rath/Heumar":{"etw":[3728,1818,4999,15],"haus":{"freistehend":[4621,1600,9418,19],"Doppelhaushälfte / Reihenendhaus":[4097,1497,6399,12]}},"Vingst":{"etw":[3076,1276,4902,18]},"Buchforst":{"etw":[3272,2192,4557,4]},"Buchheim":{"etw":[3254,1493,5000,27],"haus":{"Doppelhaushälfte / Reihenendhaus":[3919,2725,5105,7],"Reihenmittelhaus":[3926,2667,4805,3]}},"Dellbrück":{"etw":[3630,1500,5275,53],"haus":{"freistehend":[4825,3514,6136,7],"Doppelhaushälfte / Reihenendhaus":[4127,2675,8441,17],"Reihenmittelhaus":[3626,2155,5111,11]}},"Dünnwald":{"etw":[3571,2706,4688,12],"haus":{"freistehend":[3464,2708,4444,4],"Doppelhaushälfte / Reihenendhaus":[3044,1556,4757,12],"Reihenmittelhaus":[3432,2819,4516,5]}},"Flittard":{"etw":[2661,1582,4222,9],"haus":{"freistehend":[4028,3777,4337,3],"Doppelhaushälfte / Reihenendhaus":[3729,2100,5235,11],"Reihenmittelhaus":[2555,2069,3762,5]}},"Höhenhaus":{"etw":[3317,2427,5036,26],"haus":{"freistehend":[4364,1786,7762,8],"Doppelhaushälfte / Reihenendhaus":[3866,2021,5353,27],"Reihenmittelhaus":[4123,3442,5055,9]}},"Holweide":{"etw":[3301,2132,4914,44],"haus":{"Doppelhaushälfte / Reihenendhaus":[3861,2871,5047,7],"Reihenmittelhaus":[3595,1839,4824,11]}},"Mülheim":{"etw":[3747,870,7154,118],"haus":{"Reihenmittelhaus":[3789,2575,5840,12]}},"Stammheim":{"etw":[3489,2459,4463,9]},"Godorf":{"haus":{"freistehend":[3598,2885,4063,3],"Doppelhaushälfte / Reihenendhaus":[3074,1781,4158,3]}},"Immendorf":{"haus":{"freistehend":[3615,3029,4188,3],"Reihenmittelhaus":[3568,3344,3817,3]}},"Mengenich":{"haus":{"freistehend":[3301,2537,3923,3]}},"Blumenberg":{"haus":{"Doppelhaushälfte / Reihenendhaus":[3708,3395,4200,5]}},"Lindweiler":{"haus":{"Doppelhaushälfte / Reihenendhaus":[3350,3175,3600,4],"Reihenmittelhaus":[2771,2584,2883,5]}}};
+
+// S3 Buchhalter v2 (Phase 1b). n8n Code-Knoten, Modus "Run Once for All Items".
+// Voran steht der generierte Block aus referenzband_koeln_2026.js (REF_IRW, REF_GMB); build_s3.py fuegt beides zusammen.
+// Eingabe: Zeilen aus objekt mit zustand = 'neu'. Ausgabe: dieselben Zeilen mit Bewertung.
+// Deterministisch, kein Modellaufruf, kein Abruf (R20). Jede Zahl hat eine Beleg-id (R18): irw_nrw_2026, gmb_koeln_2026.
+// R4: Deckel am Referenzpreis. Angebot ueber Deckel, Referenz darunter -> Verhandlungsfall mit Zielgebot.
+// Referenzpreis = Wohnflaeche x angepasster Immobilienrichtwert (Median der Zonen des Stadtteils).
+// Anpassung nur mit den Merkmalen aus der Anzeige (Wohnflaeche, bei Haus Grundstueck); Baujahr, Ausstattung, Miete bleiben Normobjekt.
+// Spur 2 (GMB Kaufpreisspannen je Stadtteil) nur als Rueckfall ohne Zone; Belegdichte weist die Luecke aus (R8).
+
+const VERSION = 's3-2026-09-10.2';
+const NEBENKOSTEN = 0.065 + 0.015 + 0.005;          // basis.yaml
+const COURTAGE_RUECKFALL = 0.0357;
+
+const PROFILE = {
+  A: { deckel: 500000, teilmarkt: 'etw',
+       kernlage: ['Ehrenfeld', 'Neustadt-Nord', 'Neustadt-Süd', 'Lindenthal', 'Sülz', 'Rodenkirchen', 'Marienburg'],
+       gewichte: { preisabstand_pct: 26, bruttorendite_pct: 19, zustand: 15, energieklasse: 13, ruecklage_deckung: 13, wohnlage_amtlich: 8, grundriss_zimmer: 6 },
+       zimmer: { 1: 20, 2: 55, 3: 80, 4: 95 } },
+  B: { deckel: 900000, teilmarkt: 'haus',
+       kernlage: ['Ehrenfeld', 'Lindenthal', 'Sülz', 'Rodenkirchen', 'Marienburg', 'Junkersdorf'],
+       gewichte: { zustand: 22, preisabstand_pct: 20, energieklasse: 18, wohnflaeche_fit: 12, grundstueck_fit: 10, wohnlage_amtlich: 10, grundriss_zimmer: 8 },
+       zimmer: { 2: 20, 3: 55, 4: 85, 5: 100, 6: 85 },
+       wohnflaeche: { 90: 0, 120: 100, 170: 100, 210: 0 },
+       grundstueck: { 200: 0, 350: 100, 700: 100, 1200: 0 } },
+};
+const PREIS_ANKER = { '-15': 100, '0': 60, '10': 30, '20': 0 };            // anker.yaml preis (preisabstand_pct, geklemmt)
+
+// Umrechnungskoeffizienten (irw_koeln_2026_koeffizienten.yaml), nur die aus der Anzeige belegbaren Merkmale
+const UK_WF_ETW = [[25, 40, 1.02], [41, 80, 1.00], [81, 120, 1.02], [121, 150, 1.07]];
+const UK_WF_HAUS = [[70, 90, 1.18], [91, 110, 1.08], [111, 130, 1.00], [131, 150, 0.95], [151, 170, 0.88], [171, 190, 0.85], [191, 400, 0.80]];
+const UK_GS_HAUS = [[100, 200, 0.96], [201, 300, 1.00], [301, 400, 1.04], [401, 500, 1.08], [501, 700, 1.17], [701, 900, 1.28], [901, 2500, 1.52]];
+function uk(tab, x) {
+  if (typeof x !== 'number') return null;
+  if (x < tab[0][0] || x > tab[tab.length - 1][1]) return null;       // ausserhalb des Modells: keine Anpassung, Fahne
+  for (const [a, b, k] of tab) if (x >= a && x <= b) return k;
+  return null;
+}
+
+function interp(anker, x) {
+  const pts = Object.keys(anker).map(Number).sort((a, b) => a - b);
+  if (x <= pts[0]) return anker[pts[0]];
+  if (x >= pts[pts.length - 1]) return anker[pts[pts.length - 1]];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    if (x >= a && x <= b) return anker[a] + (anker[b] - anker[a]) * (x - a) / (b - a);
+  }
+  return null;
+}
+const median = xs => { const s = [...xs].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+
+function profilVon(suchauftrag) {
+  const s = String(suchauftrag || '').trim();
+  if (/^A\b/i.test(s)) return 'A';
+  if (/^B\b/i.test(s)) return 'B';
+  return null;
+}
+function normStadtteil(s) {
+  s = String(s || '').trim();
+  if (!s || s === 'fehlt in der Anzeige') return null;
+  return s.replace(/Sued/g, 'Süd').replace(/Suelz/g, 'Sülz').replace(/ue/g, 'ü');
+}
+
+// Referenzpreis je m² fuer Stadtteil und Teilmarkt; liefert { qm, band, quelle, fahnen }
+function referenz(stadtteil, teilmarkt, wf, gs) {
+  const fahnen = [];
+  const st = normStadtteil(stadtteil);
+  if (!st) return { qm: null, band: null, quelle: null, fahnen: ['stadtteil_fehlt'] };
+  const tab = teilmarkt === 'etw' ? UK_WF_ETW : UK_WF_HAUS;
+  const r = REF_IRW[st] && REF_IRW[st][teilmarkt];
+  if (r && r.z.length) {
+    const werte = [];
+    for (const [imrw, name, normWf, normFl] of r.z) {
+      let f = 1;
+      const kObj = uk(tab, wf), kNorm = uk(tab, normWf);
+      if (kObj != null && kNorm != null) f *= kObj / kNorm; else if (typeof wf === 'number') fahnen.push('wohnflaeche_ausserhalb_modell');
+      if (teilmarkt === 'haus') {
+        const gObj = uk(UK_GS_HAUS, gs), gNorm = uk(UK_GS_HAUS, normFl);
+        if (gObj != null && gNorm != null) f *= gObj / gNorm; else fahnen.push('grundstueck_fehlt_oder_ausserhalb');
+      }
+      werte.push(Math.round(imrw * f));
+    }
+    return { qm: Math.round(median(werte)), band: [Math.min(...werte), Math.max(...werte)], quelle: 'irw_nrw_2026',
+             zonen: r.z.map(z => z[1]), fahnen: [...new Set(fahnen)] };
+  }
+  const g = REF_GMB[st];
+  if (g) {
+    if (teilmarkt === 'etw' && g.etw) return { qm: g.etw[0], band: [g.etw[1], g.etw[2]], quelle: 'gmb_koeln_2026', kauffaelle: g.etw[3], fahnen: ['referenz_spur2_kaufpreisspanne'] };
+    if (teilmarkt === 'haus' && g.haus) {
+      const arten = Object.values(g.haus);
+      return { qm: Math.round(median(arten.map(a => a[0]))), band: [Math.min(...arten.map(a => a[1])), Math.max(...arten.map(a => a[2]))], quelle: 'gmb_koeln_2026', fahnen: ['referenz_spur2_kaufpreisspanne'] };
+    }
+  }
+  return { qm: null, band: null, quelle: null, fahnen: ['keine_referenz_fuer_stadtteil'] };
+}
+
+const out = [];
+for (const it of $input.all()) {
+  const j = { ...it.json };
+  const p = profilVon(j.suchauftrag);
+  const prof = p ? PROFILE[p] : null;
+  const punkte = {};
+  const fahnen = [];
+
+  const kp = (typeof j.kaufpreis_eur === 'number') ? j.kaufpreis_eur : null;
+  const wf = (typeof j.wohnflaeche_qm === 'number') ? j.wohnflaeche_qm : null;
+  const gs = (typeof j.grundstueck_qm === 'number') ? j.grundstueck_qm : null;
+  const prov = (typeof j.provision_kaeufer_pct === 'number') ? j.provision_kaeufer_pct / 100 : COURTAGE_RUECKFALL;
+  const faktor = 1 + NEBENKOSTEN + prov;
+  const gesamtaufwand = kp ? Math.round(kp * faktor) : null;
+
+  // Referenzpreis (R4)
+  let ref = { qm: null, band: null, quelle: null, fahnen: [] };
+  let referenzpreis = null, gesamtaufwand_ref = null, preisabstand = null, zielgebot = null;
+  const neubau = /neubau|erstbezug/i.test(String(j.titel || ''));                          // IRW gilt nur fuer Weiterverkauf (Fachinformation)
+  if (prof && !neubau) {
+    ref = referenz(j.stadtteil, prof.teilmarkt, wf, gs);
+    fahnen.push(...ref.fahnen);
+    if (ref.qm && wf) {
+      referenzpreis = Math.round(ref.qm * wf);
+      gesamtaufwand_ref = Math.round(referenzpreis * faktor);
+      if (kp) preisabstand = Math.round((kp - referenzpreis) / referenzpreis * 1000) / 10;
+    }
+  }
+
+  // Deckelstatus
+  let deckel_status;
+  if (!prof) deckel_status = 'kein_profil';
+  else if (gesamtaufwand_ref != null) {
+    if (gesamtaufwand_ref > prof.deckel) deckel_status = 'ausgeschlossen_referenzpreis';               // R4: einziges Ausschlusskriterium
+    else if (gesamtaufwand != null && gesamtaufwand > prof.deckel) {
+      deckel_status = 'verhandlungsfall';                                                              // Angebot drueber, Referenz drunter
+      zielgebot = Math.round(prof.deckel / faktor / 1000) * 1000;                                       // hoechstes Gebot innerhalb des Deckels
+    } else if (gesamtaufwand == null) { deckel_status = 'unter_deckel_preis_fehlt'; fahnen.push('preis_fehlt_in_der_anzeige'); }
+    else deckel_status = 'unter_deckel';
+  } else if (gesamtaufwand == null) { deckel_status = 'kein_preis'; fahnen.push('preis_fehlt_in_der_anzeige'); }
+  else deckel_status = gesamtaufwand <= prof.deckel ? 'unter_deckel_notbehelf' : 'ueber_deckel_angebotspreis';   // ohne Referenz: Notbehelf
+  if (prof && neubau) fahnen.push('neubau_irw_gilt_nur_weiterverkauf');
+
+  // Punkte
+  let lage_stufe = null;
+  if (prof) {
+    const st = normStadtteil(j.stadtteil);
+    lage_stufe = (st && prof.kernlage.includes(st)) ? 'kernlage' : 'im_radius';
+    punkte.wohnlage_amtlich = lage_stufe === 'kernlage' ? 100 : 50;
+    if (typeof j.zimmer === 'number') punkte.grundriss_zimmer = interp(prof.zimmer, j.zimmer);
+    if (preisabstand != null) punkte.preisabstand_pct = Math.round(interp(PREIS_ANKER, Math.max(-15, Math.min(20, preisabstand))));
+    if (p === 'B') {
+      if (wf != null) punkte.wohnflaeche_fit = interp(prof.wohnflaeche, wf);
+      if (gs != null) punkte.grundstueck_fit = interp(prof.grundstueck, gs);
+    }
+  }
+
+  let vorscore = null, belegdichte = 0;
+  if (prof) {
+    let gsum = 0, wsum = 0;
+    for (const [k, g] of Object.entries(prof.gewichte)) if (typeof punkte[k] === 'number') { gsum += g; wsum += g * punkte[k]; }
+    belegdichte = Math.round(gsum) / 100;
+    vorscore = gsum ? Math.round(wsum / gsum) : null;
+  }
+
+  Object.assign(j, {
+    profil: p || 'unbekannt',
+    gesamtaufwand_eur: gesamtaufwand,
+    referenzpreis_eur: referenzpreis,
+    referenz_qm: ref.qm,
+    referenz_band: ref.band ? ref.band.join('-') : null,
+    referenz_quelle: ref.quelle,
+    preisabstand_pct: preisabstand,
+    zielgebot_eur: zielgebot,
+    deckel_status,
+    lage_stufe,
+    vorscore,
+    belegdichte,
+    bewertung_json: JSON.stringify({ punkte, fahnen: [...new Set(fahnen)], referenz: ref, gesamtaufwand_ref, version: VERSION,
+      belege: ['irw_nrw_2026', 'gmb_koeln_2026'], hinweis: 'Referenz ohne Baujahr, Ausstattung, Miete (Normobjekt); Zustand, Energie, Rendite, Ruecklage fehlen bis C1/C2' }),
+    zustand: 'vorbewertet',
+    bewertet_am: new Date().toISOString(),
+  });
+  out.push({ json: j });
+}
+return out;
