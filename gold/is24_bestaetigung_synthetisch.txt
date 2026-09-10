@@ -1,0 +1,30 @@
+Dein neuer Suchauftrag
+---------------------------------------------------------------------------------------
+Deine suche Eigentumswohnung, gezeichnetes Suchgebiet in Köln Lindenthal, bis 800.000 € Kaufpreis wurde erfolgreich gespeichert.
+---------------------------------------------------------------------------------------
+Angebote, die zu deiner Suche passen:
+Titel: Testfall 1: Altbauwohnung mit Balkon
+Link: https://push.search.is24.de/email/expose/900000001?PID=1&savedSearchId=42&immoTypeId=2
+Adresse: Musterstraße 12, Sülz, Köln
+Kaufpreis: 398.000 €
+Wohnfläche: 78 m²
+Zimmer: 3
+Provisionsfrei für Kaufende, Balkon/Terrasse, Keller
+Titel: Testfall 2: ohne Hausnummer, Ortsteil-Zusatz, Nachkommastellen
+Link: https://push.search.is24.de/email/expose/900000002?PID=1&savedSearchId=42&immoTypeId=2
+Adresse: Beispielweg, Ehrenfeld (Ortsteil), Köln
+Kaufpreis: 437.900 €
+Wohnfläche: 57,5 m²
+Zimmer: 2,5
+Balkon/Terrasse, Aufzug
+Titel: Testfall 3: nur Stadtteil, Schreibweise mit Schrägstrich
+Link: https://push.search.is24.de/email/expose/900000003?PID=1&savedSearchId=42&immoTypeId=2
+Adresse: Neustadt/Nord, Köln
+Kaufpreis: 260.000 €
+Wohnfläche: 72 m²
+Zimmer: 3
+Keller
+
+Datenschutz
+Impressum
+© 1999 - 2026 Immobilien Scout GmbH

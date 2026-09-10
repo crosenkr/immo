@@ -1,0 +1,31 @@
+# profil-a.yaml: Vermietete Eigentumswohnung als Kapitalanlage, Koeln. Version 1, Sitzung 1 vom 10.09.2026.
+meta: { id: A, name: Kapitalanlage_ETW_Koeln, version: 1, treffer_pro_woche: [2, 12] }
+geofence:
+  quelle: portal_suchgebiet            # E2: von Hand gezeichneter Radius bei ImmoScout24 (Suchauftrag "A Anlage"); kein eigenes Polygon
+  kernlage: [Ehrenfeld, Neustadt-Nord, Neustadt-Sued, Lindenthal, Suelz, Rodenkirchen, Marienburg]   # volle Punkte bei wohnlage_amtlich
+  im_radius: alle_uebrigen_stadtteile_im_suchgebiet                                                  # halbe Punkte (z.B. Zollstock, Braunsfeld, Nippes)
+portalfilter: [kaufpreis_eur]          # IS24: bis 800.000, bewusst ueber dem Deckel (R4 misst am Referenzpreis)
+vorfeld:
+  - { feld: erbbaurecht, werte: [ja, nein, unbekannt], bei_fehlend: nein }
+ko:
+  - { feld: gesamtaufwand_eur, op: "<=", wert: 500000, bei_fehlend: ko, messung: referenzpreis }     # E3; Kaufpreisgrenze am Angebotspreis waere 446.114
+  - { feld: erbbaurecht_restlaufzeit_jahre, op: ">=", wert: 55, gilt_nur_wenn: "erbbaurecht == ja", bei_fehlend: frage }
+gewichte: { preisabstand_pct: 26, bruttorendite_pct: 19, zustand: 15, energieklasse: 13, ruecklage_deckung: 13, wohnlage_amtlich: 8, grundriss_zimmer: 6 }
+punkte:
+  preisabstand_pct: { vorlage: preis }
+  zustand: { vorlage: zustand }
+  energieklasse: { vorlage: energie }
+  wohnlage_amtlich: { vorlage: lage }
+  bruttorendite_pct: { bezug: "jahreskaltmiete / gesamtaufwand_eur", anker: { "2.0": 0, "3.0": 50, "4.5": 100 }, ohne_angabe: [0, 50] }
+  ruecklage_deckung: { bezug: "ruecklage_bestand_eur / ruecklage_soll_eur", anker: { "0.3": 0, "1.0": 70, "1.5": 100 }, ohne_angabe: [0, 70] }
+  grundriss_zimmer: { anker: { "1": 20, "2": 55, "3": 80, "4": 95 }, ohne_angabe: [20, 80] }
+fahnen:                                # R13: Frage ohne Score. Sortierprobe 10.09.2026: Erbbaurecht und Vermietung an Verwandte waren die einzigen Ausschluesse
+  - erbbaurecht_unbekannt
+  - vermietung_an_angehoerige_des_verkaeufers
+  - hausgeldrueckstaende_weg
+  - sanierungsbeschluss_offen
+  - denkmalschutz
+  - energieausweis_fehlt
+referenz: { spur1: irw_nrw_2026_teilma1, spur2: gmb_koeln_2026_k611, zins: gmb_koeln_2026_liz, koeff: gmb_k612 }   # Belegschrank, Checkliste Punkt 11
+schwellen: { vorschlag_ab: 55, endgueltig_unter: 35 }     # E4
+sortierprobe: gold/sortierprobe-a.json                    # A0.3, versiegelt

@@ -1,0 +1,19 @@
+# basis.yaml: Leitplanken fuer beide Profile. Stand 10.09.2026 (Sitzung 1). Aenderung nur per Pull Request.
+scorefaehige_belegklassen: [B0, B1, B2]        # R1
+belegdichte_min:
+  V0: 0.35
+  V2: 0.70
+laufende_variante: V2                          # E0, 10.09.2026; Widerruf nach A0.9 siehe OFFEN.md
+band_veraltung_tage: { warnen: 400, sperren: 800 }
+adressaufloesung_digest: strassenabschnitt     # R19: keine Hausnummer im Digest
+geo_crs: "EPSG:25832"
+nebenkosten_pct:                               # NRW, Stand 2026; Zeile in normen.md
+  grunderwerbsteuer: 6.50
+  notar: 1.50
+  grundbuch: 0.50
+  courtage_kaeufer: 3.57                       # Rueckfall, wenn die Anzeige nichts nennt (E3)
+annahmen:                                      # Richtwerte, keine Angebote; mit Quelle und Datum
+  sollzins_pct: 3.89                           # Dr. Klein, 10 Jahre, Stand 09.09.2026, https://www.drklein.de/aktuelle-bauzinsen.html
+  tilgung_pct: 2.0                             # Obergrenze des Deckels (E3)
+deckel_messung: referenzpreis                  # R4 (10.09.2026): Deckel gilt am Referenzpreis, nicht am Angebotspreis
+deckel_notbehelf: angebotspreis_unvollstaendig # bis das Referenzband im Belegschrank liegt: ueber Deckel -> Status UV, nicht AB

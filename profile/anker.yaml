@@ -1,0 +1,5 @@
+# anker.yaml: Kriteriumsvorlagen. Das Profil setzt nur das Gewicht g.
+preis:   { anker: { "-15": 100, "0": 60, "10": 30, "20": 0 }, ohne_angabe: [0, 60] }     # preisabstand_pct, geklemmt
+zustand: { anker: { kernsanierung: 5, renovierungsbeduerftig: 35, gepflegt: 70, saniert: 100 }, ohne_angabe: [5, 70] }
+energie: { anker: { "A+": 100, "A": 95, "B": 85, "C": 70, "D": 55, "E": 40, "F": 25, "G": 12, "H": 0 }, ohne_angabe: [0, 55] }
+lage:    { anker: { ausserhalb: 0, im_radius: 50, kernlage: 100 }, ohne_angabe: [0, 50] } # wohnlage_amtlich nach E2: Kernlage = Stadtteilliste, im_radius = gezeichnetes Suchgebiet

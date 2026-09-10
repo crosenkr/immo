@@ -1,0 +1,5 @@
+[
+ {"expose_id":"900000001","strasse":"Musterstraße","hausnummer":"12","stadtteil":"Sülz","kaufpreis_eur":398000,"wohnflaeche_qm":78,"zimmer":3,"provision_kaeufer_pct":0,"preis_je_qm":5102.56},
+ {"expose_id":"900000002","strasse":"Beispielweg","hausnummer":"fehlt in der Anzeige","stadtteil":"Ehrenfeld","kaufpreis_eur":437900,"wohnflaeche_qm":57.5,"zimmer":2.5,"provision_kaeufer_pct":"fehlt in der Anzeige","preis_je_qm":7615.65},
+ {"expose_id":"900000003","strasse":"fehlt in der Anzeige","hausnummer":"fehlt in der Anzeige","stadtteil":"Neustadt-Nord","kaufpreis_eur":260000,"wohnflaeche_qm":72,"zimmer":3,"provision_kaeufer_pct":"fehlt in der Anzeige","preis_je_qm":3611.11}
+]

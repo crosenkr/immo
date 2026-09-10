@@ -16,9 +16,11 @@ Die einzige gültige Liste offener Punkte. Zu Beginn jeder Sitzung lesen, am End
 - E30: Sitzung 1 in einem Termin.
 
 ### Offen nach Sitzung 1
-- OFFEN: Sortierprobe A0.2 (zwölf Kurzanzeigen Profil A) von Christoph sortieren lassen, Ergebnis versiegeln (A0.3)
-- OFFEN: Live-Beweis: erste Portalmail als .eml an Claude, daraus Parser S1 und profile/profil-a.yaml
-- OFFEN: E8: hat das ImmoScout-Konto die Plus-Adresse angenommen? Sonst Absenderdomain als Routing-Merkmal
+- 10.09.2026 ERLEDIGT: Sortierprobe A0.2 versiegelt (gold/sortierprobe-a.json, SHA-256 daneben): 10 von 12 hinsehen, verworfen nur Erbbaurecht (5) und Vermietung an Verwandte (7)
+- 10.09.2026 ERLEDIGT: Live-Beweis. Bestaetigungsmail des Suchauftrags A Anlage kam an immo+is24@ an; Parser S1 (n8n/s1_parser_is24.js) gegen 30 Anzeigen geprueft; profile/basis.yaml, anker.yaml, profil-a.yaml, profil-b.yaml angelegt
+- OFFEN: Parser gegen die erste Echtzeit-Benachrichtigung pruefen (anderes Mailformat moeglich)
+- OFFEN: Sitzung 2: Zielbaender wohnflaeche_fit und grundstueck_fit in profil-b.yaml sind gesetzt, nicht entschieden
+- 10.09.2026 ERLEDIGT: E8, ImmoScout nimmt immo+is24@ an (To-Header der Bestaetigungsmail)
 - OFFEN: Punkt 11 der Checkliste (Referenzband: Immobilienrichtwerte TEILMA 1 bis 3, Marktbericht Köln) rückt nach Phase 1b vor, weil R4 am Referenzpreis misst
 - OFFEN: docs/KONZEPT.md von Christoph hochladen (Konnektor überträgt keine 220-KB-Datei)
 

@@ -1,0 +1,22 @@
+# profil-b.yaml: Haus zur Eigennutzung, Koeln. Version 1, Sitzung 1 vom 10.09.2026. Startet eine Phase nach A.
+meta: { id: B, name: Eigennutzung_Haus_Koeln, version: 1, treffer_pro_woche: [1, 6] }
+geofence:
+  quelle: portal_suchgebiet            # E2: gezeichneter Radius bei ImmoScout24 (Suchauftrag "B Haus")
+  kernlage: [Ehrenfeld, Lindenthal, Suelz, Rodenkirchen, Marienburg, Junkersdorf]
+  im_radius: alle_uebrigen_stadtteile_im_suchgebiet
+portalfilter: [kaufpreis_eur]          # IS24: bis 1.200.000, bewusst ueber dem Deckel
+ko:
+  - { feld: gesamtaufwand_eur, op: "<=", wert: 900000, bei_fehlend: ko, messung: referenzpreis }     # E3; Kaufpreisgrenze am Angebotspreis waere 803.000
+  - { feld: vermietet, op: "==", wert: false, bei_fehlend: frage }
+gewichte: { zustand: 22, preisabstand_pct: 20, energieklasse: 18, wohnflaeche_fit: 12, grundstueck_fit: 10, wohnlage_amtlich: 10, grundriss_zimmer: 8 }
+punkte:
+  zustand: { vorlage: zustand }
+  preisabstand_pct: { vorlage: preis }
+  energieklasse: { vorlage: energie }
+  wohnlage_amtlich: { vorlage: lage }
+  wohnflaeche_fit: { typ: zielband, anker: { "90": 0, "120": 100, "170": 100, "210": 0 }, ohne_angabe: [0, 85] }   # gesetzt, Sitzung 2 pruefen (E24 offen)
+  grundstueck_fit: { typ: zielband, anker: { "200": 0, "350": 100, "700": 100, "1200": 0 }, ohne_angabe: [0, 85] } # gesetzt, Sitzung 2 pruefen
+  grundriss_zimmer: { anker: { "2": 20, "3": 55, "4": 85, "5": 100, "6": 85 }, ohne_angabe: [20, 85] }
+fahnen: [erbbaurecht_unbekannt, denkmalschutz, energieausweis_fehlt, hochwasser_hq100]
+referenz: { spur1: irw_nrw_2026_teilma23, spur2: gmb_koeln_2026_k611, klammer: brw_x_grundstueck }
+schwellen: { vorschlag_ab: 55, endgueltig_unter: 35 }
