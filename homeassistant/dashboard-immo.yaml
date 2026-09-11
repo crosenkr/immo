@@ -1,0 +1,39 @@
+type: vertical-stack
+cards:
+  - type: markdown
+    content: |
+      {% set n = states('sensor.immo_objekte') %}
+      {%- if n in ['unknown', 'unavailable', ''] %}
+      ### Immobilien
+
+      Noch keine Daten. Die Kachel kommt aus n8n und wird alle 30 Minuten gesetzt.
+      {%- else %}
+      ### Immobilien: {{ n }} unter dem Deckel
+
+      {{ state_attr('sensor.immo_objekte', 'anzahl_a') }} Wohnungen, {{ state_attr('sensor.immo_objekte', 'anzahl_b') }} Häuser, {{ state_attr('sensor.immo_objekte', 'anzahl_verhandlungsfall') }} Verhandlungsfälle.
+      {% set liste = state_attr('sensor.immo_objekte', 'objekte_json') | default('[]', true) | from_json %}
+      {%- for o in liste[:8] %}
+
+      **{{ o.vorscore }}** [{{ o.titel }}]({{ o.link or '#' }})
+
+      {{ o.lage }}{% if o.kernlage %} (Kernlage){% endif %} | {% if o.kaufpreis %}{{ '{:,.0f}'.format(o.kaufpreis) | replace(',', '.') }} €{% else %}Preis k. A.{% endif %}{% if o.flaeche %} | {{ o.flaeche | string | replace('.', ',') }} m²{% endif %}{% if o.zimmer %} | {{ o.zimmer | string | replace('.', ',') }} Zi.{% endif %}{% if o.je_qm %} | {{ '{:,.0f}'.format(o.je_qm) | replace(',', '.') }} €/m²{% endif %}
+
+      *{{ o.deckel }}{% if o.abstand is not none %} | Abstand {{ o.abstand | string | replace('.', ',') }} %{% endif %}{% if o.zielgebot %} | Zielgebot {{ '{:,.0f}'.format(o.zielgebot) | replace(',', '.') }} €{% endif %} | Belege {{ o.belegdichte | string | replace('.', ',') }}*
+      {%- endfor %}
+      {%- if liste | length == 0 %}
+
+      Zurzeit kein Objekt unter dem Deckel.
+      {%- endif %}
+
+      *Stand {{ (state_attr('sensor.immo_objekte', 'stand') | as_datetime | as_local).strftime('%d.%m. %H:%M') }}. Vorscore aus Anzeigenfeldern und Referenzpreis, kein Kaufurteil.*
+      {%- endif %}
+
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.immo_daten_veraltet
+        state: "on"
+    card:
+      type: markdown
+      content: |
+        **Die Immobilienkachel ist älter als zwei Stunden.**
+        Prüfe in n8n den Workflow "Immo S6 Kachel Home Assistant".
