@@ -1,0 +1,50 @@
+# immo.yaml: Anzeige der Immobiliensuche in Home Assistant.
+# Ablage neben configuration.yaml im Ordner packages/ (wie pakete.yaml).
+# Quelle ist die Entitaet sensor.immo_objekte. Sie kommt aus n8n (Workflow "Immo S6 Kachel Home Assistant")
+# und wird alle 30 Minuten neu gesetzt. Nach einem Neustart von Home Assistant ist sie bis zum naechsten Lauf leer.
+# Die Liste der Objekte steht als JSON-Text im Attribut objekte_json und wird hier mit from_json gelesen.
+
+template:
+  - sensor:
+      - name: "Immo kurz"
+        unique_id: immo_kurz
+        icon: mdi:home-search
+        state: >
+          {% set s = states('sensor.immo_objekte') %}
+          {% if s in ['unknown', 'unavailable', ''] %}
+            keine Daten
+          {% else %}
+            {{ state_attr('sensor.immo_objekte', 'kurz') | default('keine Treffer', true) }}
+          {% endif %}
+
+      - name: "Immo bester Vorscore"
+        unique_id: immo_bester_vorscore
+        icon: mdi:star-outline
+        state: "{{ state_attr('sensor.immo_objekte', 'bestes_vorscore') | int(0) }}"
+
+      - name: "Immo Verhandlungsfaelle"
+        unique_id: immo_verhandlungsfaelle
+        icon: mdi:handshake-outline
+        unit_of_measurement: "Objekte"
+        state: "{{ state_attr('sensor.immo_objekte', 'anzahl_verhandlungsfall') | int(0) }}"
+
+      - name: "Immo Stand"
+        unique_id: immo_stand
+        device_class: timestamp
+        state: >
+          {{ state_attr('sensor.immo_objekte', 'stand') | default(none, true) }}
+
+  - binary_sensor:
+      - name: "Immo Treffer vorhanden"
+        unique_id: immo_treffer_vorhanden
+        icon: mdi:home-plus
+        state: "{{ states('sensor.immo_objekte') | int(0) > 0 }}"
+
+      - name: "Immo Daten veraltet"
+        unique_id: immo_daten_veraltet
+        icon: mdi:clock-alert-outline
+        device_class: problem
+        # Der Sammler laeuft alle 15 Minuten, die Kachel alle 30. Nach zwei Stunden ohne Aktualisierung stimmt etwas nicht.
+        state: >
+          {% set t = state_attr('sensor.immo_objekte', 'stand') %}
+          {{ t is none or (as_timestamp(now()) - as_timestamp(t, 0)) > 7200 }}
