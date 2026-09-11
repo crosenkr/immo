@@ -1,6 +1,6 @@
-hinweis: Zuordnung Stadtteil -> Immobilienrichtwertzonen ueber den Zonennamen (gesetzt 10.09.2026, Geometrie-Pruefung mit
-  Stadtteilgrenzen offen). Teilmarkt 1 = Eigentumswohnungen, 2 = Ein-/Zweifamilienhaeuser. Referenzband je Stadtteil = min..max
-  der Zonen, Referenzwert = Median.
+hinweis: Zuordnung Stadtteil -> Immobilienrichtwertzonen ueber den Zonennamen (build_stadtteil_zonen.py, Stand 11.09.2026;
+  Plausibilitaet gegen den Marktbericht geprueft mit pruefe_referenz.py). Teilmarkt 1 = Eigentumswohnungen, 2 = Ein-/Zweifamilienhaeuser.
+  Band = min..max der Zonen, Median = Referenzwert.
 stadtteile:
   Altstadt-Nord:
     etw:
@@ -41,15 +41,6 @@ stadtteile:
       - 4800
       - 4800
       median: 4800
-    haus:
-      zonen:
-      - wnum: '202601'
-        name: Marienburg / Bayenthal Süd
-        imrw: 11700
-      band:
-      - 11700
-      - 11700
-      median: 11700
   Bickendorf:
     haus:
       zonen:
