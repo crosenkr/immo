@@ -13,7 +13,9 @@ for k, v in wf['connections'].items():
             if c['node'] == 'Vorbewertung rechnen': c['node'] = 'Bewertung rechnen'
 for n in wf['nodes']:
     if n['type'] == 'n8n-nodes-base.dataTable' and n['name'] == 'Ereignis VORBEWERTET':
-        n['parameters']['columns']['value']['nutzlast'] = n['parameters']['columns']['value']['nutzlast'].replace("$('Vorbewertung rechnen')", "$('Bewertung rechnen')")
+        v = n['parameters']['columns']['value']
+        v['nutzlast'] = v['nutzlast'].replace("$('Vorbewertung rechnen')", "$('Bewertung rechnen')")
+        v['objekt_schluessel'] = '={{ $json.objekt_schluessel }}'      # Eingabe ist die aktualisierte Zeile aus "objekt aktualisieren"
     if n['name'] == 'objekt aktualisieren':
         cols = n['parameters']['columns']
         for k, t in [('referenzpreis_eur','number'),('referenz_qm','number'),('referenz_band','string'),('referenz_quelle','string'),('preisabstand_pct','number'),('zielgebot_eur','number')]:
