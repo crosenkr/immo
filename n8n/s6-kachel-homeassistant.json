@@ -1,0 +1,185 @@
+{
+  "name": "Immo S6 Kachel Home Assistant (Phase 1b, v2)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "10,40 * * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -900,
+        300
+      ],
+      "id": "k1",
+      "name": "Alle 30 Minuten"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "objekt_schluessel",
+              "condition": "isNotEmpty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -680,
+        300
+      ],
+      "id": "k2",
+      "name": "objekt lesen",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// S6 Kachel (Phase 1b). n8n Code-Knoten, Modus \"Run Once for All Items\".\n// Baut aus der Tabelle objekt den Inhalt fuer die Home-Assistant-Entitaet sensor.immo_objekte.\n// Nur Felder aus der Tabelle, kein Modellaufruf, kein Abruf. Adresse ohne Hausnummer (R19).\n// Der Zustand der Entitaet ist die Anzahl der Treffer. Die Liste steht als JSON-Text im Attribut objekte_json,\n// weil der Home-Assistant-Knoten von n8n nur einfache Attributwerte kennt. In Home Assistant liest sie from_json.\nconst VERSION = 's6-2026-09-11.1';\nconst MAX_LISTE = 12;\nconst KAUFBAR = ['unter_deckel', 'verhandlungsfall', 'unter_deckel_notbehelf', 'unter_deckel_preis_fehlt'];\nconst DECKEL_KURZ = { unter_deckel: 'unter Deckel', verhandlungsfall: 'Verhandlungsfall', unter_deckel_notbehelf: 'nur Angebotspreis', unter_deckel_preis_fehlt: 'Preis fehlt' };\n\nconst alle = $input.all().map(i => i.json).filter(j => j && String(j.objekt_schluessel || '').startsWith('is24:'));\nconst treffer = alle.filter(j => KAUFBAR.includes(j.deckel_status) && typeof j.vorscore === 'number');\ntreffer.sort((a, b) => (b.vorscore - a.vorscore) || ((a.preis_je_qm || 0) - (b.preis_je_qm || 0)));\n\nconst liste = treffer.slice(0, MAX_LISTE).map(j => ({\n  schluessel: j.objekt_schluessel,\n  profil: j.profil || 'unbekannt',\n  titel: String(j.titel || '').slice(0, 80),\n  lage: [j.stadtteil, j.strasse].filter(x => x && x !== 'fehlt in der Anzeige').join(', ') || 'Lage k. A.',\n  kaufpreis: (typeof j.kaufpreis_eur === 'number') ? j.kaufpreis_eur : null,\n  flaeche: (typeof j.wohnflaeche_qm === 'number') ? j.wohnflaeche_qm : null,\n  zimmer: (typeof j.zimmer === 'number') ? j.zimmer : null,\n  je_qm: (typeof j.preis_je_qm === 'number') ? Math.round(j.preis_je_qm) : null,\n  referenz_qm: (typeof j.referenz_qm === 'number') ? j.referenz_qm : null,\n  abstand: (typeof j.preisabstand_pct === 'number') ? j.preisabstand_pct : null,\n  vorscore: j.vorscore,\n  belegdichte: j.belegdichte ?? null,\n  deckel: DECKEL_KURZ[j.deckel_status] || j.deckel_status,\n  zielgebot: (typeof j.zielgebot_eur === 'number') ? j.zielgebot_eur : null,\n  kernlage: j.lage_stufe === 'kernlage',\n  link: j.link || null,\n}));\n\nconst bestes = liste[0] || null;\nconst kurz = bestes\n  ? `${treffer.length} Treffer, bestes ${bestes.vorscore} in ${bestes.lage.split(',')[0]}`\n  : 'keine Treffer';\n\nreturn [{ json: {\n  entity_id: 'sensor.immo_objekte',\n  state: String(treffer.length),\n  kurz,\n  anzahl_gesamt: String(alle.length),\n  anzahl_a: String(treffer.filter(j => j.profil === 'A').length),\n  anzahl_b: String(treffer.filter(j => j.profil === 'B').length),\n  anzahl_verhandlungsfall: String(treffer.filter(j => j.deckel_status === 'verhandlungsfall').length),\n  bestes_vorscore: String(bestes ? bestes.vorscore : 0),\n  stand: new Date().toISOString(),\n  version: VERSION,\n  objekte_json: JSON.stringify(liste),\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        300
+      ],
+      "id": "k3",
+      "name": "Kachel bauen"
+    },
+    {
+      "parameters": {
+        "resource": "state",
+        "operation": "upsert",
+        "entityId": "={{ $json.entity_id }}",
+        "state": "={{ $json.state }}",
+        "stateAttributes": {
+          "attributes": [
+            {
+              "name": "kurz",
+              "value": "={{ $json.kurz }}"
+            },
+            {
+              "name": "anzahl_gesamt",
+              "value": "={{ $json.anzahl_gesamt }}"
+            },
+            {
+              "name": "anzahl_a",
+              "value": "={{ $json.anzahl_a }}"
+            },
+            {
+              "name": "anzahl_b",
+              "value": "={{ $json.anzahl_b }}"
+            },
+            {
+              "name": "anzahl_verhandlungsfall",
+              "value": "={{ $json.anzahl_verhandlungsfall }}"
+            },
+            {
+              "name": "bestes_vorscore",
+              "value": "={{ $json.bestes_vorscore }}"
+            },
+            {
+              "name": "stand",
+              "value": "={{ $json.stand }}"
+            },
+            {
+              "name": "objekte_json",
+              "value": "={{ $json.objekte_json }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.homeAssistant",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ],
+      "id": "k4",
+      "name": "Home Assistant: Zustand setzen",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "content": "### S6 Kachel (Phase 1b)\n\nAlle 30 Minuten. Liest objekt, nimmt die Treffer unter dem Deckel\n(einschliesslich Verhandlungsfall), sortiert nach Vorscore und schreibt sie\nin die Home-Assistant-Entitaet sensor.immo_objekte.\n\nDer Zustand ist die Anzahl. Die Liste steht als JSON-Text im Attribut\nobjekte_json, weil der Home-Assistant-Knoten nur einfache Attributwerte\nkennt. In Home Assistant liest sie from_json (siehe homeassistant/immo.yaml).\n\nEinrichtung: den Home-Assistant-Zugang waehlen, den du schon fuer die\nPaketanzeige nutzt.\n\nDie Entitaet ueberlebt keinen Neustart von Home Assistant. Der naechste\nLauf setzt sie neu, spaetestens nach 30 Minuten.\n\nDie Attribute stehen im Feld \"State Attributes\" (Parametername\nstateAttributes). Ein Export mit dem Namen \"attributes\" wird still\nignoriert: der Zustand kommt an, die Attribute fehlen.",
+        "height": 400,
+        "width": 460,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        520
+      ],
+      "id": "k5",
+      "name": "Sticky: S6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Alle 30 Minuten": {
+      "main": [
+        [
+          {
+            "node": "objekt lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "objekt lesen": {
+      "main": [
+        [
+          {
+            "node": "Kachel bauen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kachel bauen": {
+      "main": [
+        [
+          {
+            "node": "Home Assistant: Zustand setzen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "errorWorkflow": "HLOJsWSboUnvLnFf",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "tags": []
+}
