@@ -284,7 +284,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "objekt_schluessel": "={{ $('Vorbewertung rechnen').item.json.objekt_schluessel }}",
+            "objekt_schluessel": "={{ $json.objekt_schluessel }}",
             "typ": "VORBEWERTET",
             "zeit": "={{ $now.toISO() }}",
             "lauf_id": "={{ $execution.id }}",
