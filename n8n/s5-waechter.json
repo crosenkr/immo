@@ -1,0 +1,452 @@
+{
+  "name": "Immo S5 Waechter (Phase 1b)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "20 7 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1400,
+        300
+      ],
+      "id": "w1",
+      "name": "Täglich 7:20"
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "mailboxPath": {
+          "__rl": true,
+          "mode": "list",
+          "value": "INBOX",
+          "cachedResultName": "INBOX"
+        },
+        "emailDateRange": {},
+        "emailFlags": {
+          "seen": false
+        },
+        "emailSearchFilters": {},
+        "includeParts": []
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        300
+      ],
+      "id": "w2",
+      "name": "Posteingang pruefen",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "mailboxPath": {
+          "__rl": true,
+          "mode": "list",
+          "value": "INBOX/DLQ",
+          "cachedResultName": "INBOX/DLQ"
+        },
+        "emailDateRange": {},
+        "emailFlags": {},
+        "emailSearchFilters": {},
+        "includeParts": []
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        300
+      ],
+      "id": "w3",
+      "name": "DLQ pruefen",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "zustand",
+              "condition": "isNotEmpty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -740,
+        300
+      ],
+      "id": "w4",
+      "name": "Offene Objekte lesen",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "d6rJmS98tcnUCPiw",
+          "mode": "list",
+          "cachedResultName": "ereignis",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/d6rJmS98tcnUCPiw"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "typ",
+              "condition": "isNotEmpty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -520,
+        300
+      ],
+      "id": "w5",
+      "name": "Ereignisse lesen",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// S5 Waechter (Phase 1b). n8n Code-Knoten, Modus \"Run Once for All Items\".\n// Prueft einmal taeglich, ob die Kette laeuft. Meldet nur bei einem Befund, sonntags zusaetzlich die Wochenrueckschau.\n// Kein Modellaufruf, kein Abruf. Quellen: die Leseknoten dieses Workflows.\n// Schwellen (gesetzt, Sitzung 2 pruefen): Mail im Posteingang > 2 h, Objekt in 'neu' > 2 h,\n// Objekt in 'vorbewertet' > 26 h, kein Objektzugang seit 3 Tagen.\nconst VERSION = 's5-2026-09-11.1';\nconst STD = 3600 * 1000;\nconst jetzt = Date.now();\nconst esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst alt = (t, stunden) => { const x = Date.parse(t || ''); return Number.isFinite(x) && (jetzt - x) > stunden * STD; };\nconst hole = name => { try { return $(name).all().map(i => i.json).filter(j => j && Object.keys(j).length); } catch (e) { return []; } };\n\nconst mails = hole('Posteingang pruefen');\nconst dlq = hole('DLQ pruefen');\nconst objekte = hole('Offene Objekte lesen').filter(j => j.objekt_schluessel);\nconst ereignisse = hole('Ereignisse lesen').filter(j => j.typ);\n\nconst befunde = [];\nconst alteMails = mails.filter(m => alt(m.date || (m.envelope && m.envelope.date), 2));\nif (alteMails.length) befunde.push(`${alteMails.length} ungelesene Mail(s) liegen laenger als 2 h im Posteingang. Der Sammler kommt nicht durch.`);\nif (dlq.length) befunde.push(`${dlq.length} Mail(s) in Immo/DLQ. Der Parser hat sie nicht verstanden.`);\n\nconst stecktNeu = objekte.filter(j => j.zustand === 'neu' && alt(j.erfasst_am, 2));\nif (stecktNeu.length) befunde.push(`${stecktNeu.length} Objekt(e) stehen laenger als 2 h auf neu. Der Buchhalter laeuft nicht.`);\n\nconst stecktVor = objekte.filter(j => j.zustand === 'vorbewertet' && alt(j.bewertet_am, 26));\nif (stecktVor.length) befunde.push(`${stecktVor.length} Objekt(e) stehen laenger als 26 h auf vorbewertet. Der Digest hat sie nicht gemeldet.`);\n\nconst letzteNeu = ereignisse.filter(e => e.typ === 'NEU').map(e => Date.parse(e.zeit || '')).filter(Number.isFinite);\nconst juengste = letzteNeu.length ? Math.max(...letzteNeu) : null;\nif (juengste && (jetzt - juengste) > 3 * 24 * STD) {\n  const tage = Math.floor((jetzt - juengste) / (24 * STD));\n  befunde.push(`Seit ${tage} Tagen kein neues Objekt. Pruefe die Suchauftraege bei ImmoScout24.`);\n}\nif (!ereignisse.length) befunde.push('Die Tabelle ereignis ist leer. Das darf im Betrieb nicht vorkommen.');\n\n// Wochenrueckschau, sonntags\nconst heute = new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short' });\nconst sonntag = /^So/.test(heute);\nlet rueckschau = '';\nif (sonntag) {\n  const grenze = jetzt - 7 * 24 * STD;\n  const woche = ereignisse.filter(e => { const t = Date.parse(e.zeit || ''); return Number.isFinite(t) && t >= grenze; });\n  const zaehl = t => woche.filter(e => e.typ === t).length;\n  rueckschau = `\\n\\n<b>Wochenrueckschau</b>\\nNeue Objekte: ${zaehl('NEU')}\\nBewertungen: ${zaehl('VORBEWERTET')}\\nDigests: ${zaehl('DIGEST')}\\nStoerungen: ${zaehl('STOERUNG')}\\nBestand in objekt: ${objekte.length} offen`;\n}\n\nconst datum = new Date().toLocaleDateString('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', year: 'numeric' });\nlet text = '';\nif (befunde.length) {\n  text = `<b>Immo-Waechter ${esc(datum)}</b>\\n` + befunde.map(b => `• ${esc(b)}`).join('\\n') + rueckschau;\n} else if (sonntag) {\n  text = `<b>Immo-Waechter ${esc(datum)}</b>\\nAlles in Ordnung. Sammler, Buchhalter und Zusteller laufen.` + rueckschau;\n}\n\nreturn [{ json: {\n  melden: text.length > 0, text,\n  anzahl_befunde: befunde.length, befunde,\n  mails_offen: mails.length, mails_alt: alteMails.length, dlq: dlq.length,\n  objekte_neu: stecktNeu.length, objekte_vorbewertet: stecktVor.length,\n  version: VERSION,\n} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        300
+      ],
+      "id": "w6",
+      "name": "Lage pruefen"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "w7c",
+              "leftValue": "={{ $json.melden }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        300
+      ],
+      "id": "w7",
+      "name": "Etwas zu melden?"
+    },
+    {
+      "parameters": {
+        "chatId": "884133793",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        220
+      ],
+      "id": "w8",
+      "name": "Telegram senden",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "d6rJmS98tcnUCPiw",
+          "mode": "list",
+          "cachedResultName": "ereignis",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/d6rJmS98tcnUCPiw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "objekt_schluessel": "",
+            "typ": "WACHE",
+            "zeit": "={{ $now.toISO() }}",
+            "lauf_id": "={{ $execution.id }}",
+            "quelle": "s5",
+            "nutzlast": "={{ JSON.stringify({befunde: $('Lage pruefen').first().json.befunde, mails_offen: $('Lage pruefen').first().json.mails_offen, dlq: $('Lage pruefen').first().json.dlq, objekte_neu: $('Lage pruefen').first().json.objekte_neu, objekte_vorbewertet: $('Lage pruefen').first().json.objekte_vorbewertet}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "objekt_schluessel",
+              "displayName": "objekt_schluessel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "typ",
+              "displayName": "typ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "zeit",
+              "displayName": "zeit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lauf_id",
+              "displayName": "lauf_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "quelle",
+              "displayName": "quelle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nutzlast",
+              "displayName": "nutzlast",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        360,
+        300
+      ],
+      "id": "w9",
+      "name": "Ereignis WACHE",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "content": "### S5 Waechter (Phase 1b)\n\nTaeglich 7:20 Europe/Berlin, nach dem Digest.\nPrueft: ungelesene Mails aelter als 2 h, Mails in Immo/DLQ,\nObjekte laenger als 2 h auf neu, laenger als 26 h auf vorbewertet,\nkein Objektzugang seit 3 Tagen, leere Ereignistabelle.\n\nMeldet nur bei einem Befund. Sonntags kommt die Wochenrueckschau,\nauch wenn alles in Ordnung ist. Jeder Lauf schreibt ein Ereignis WACHE.\n\nEinrichtung: IMAP-Zugang und Telegram-Credential waehlen,\nim Knoten \"DLQ pruefen\" den Ordner aus der Liste nehmen.\nHarte Fehler in den Workflows meldet weiterhin der Fehlermelder.\n\nHinweis: Data Tables kennen hier kein \"Not Equals\".\nDarum lesen wir alle Zeilen und filtern im Code.",
+        "height": 360,
+        "width": 460,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1400,
+        520
+      ],
+      "id": "w10",
+      "name": "Sticky: S5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Täglich 7:20": {
+      "main": [
+        [
+          {
+            "node": "Posteingang pruefen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Posteingang pruefen": {
+      "main": [
+        [
+          {
+            "node": "DLQ pruefen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DLQ pruefen": {
+      "main": [
+        [
+          {
+            "node": "Offene Objekte lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Offene Objekte lesen": {
+      "main": [
+        [
+          {
+            "node": "Ereignisse lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ereignisse lesen": {
+      "main": [
+        [
+          {
+            "node": "Lage pruefen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lage pruefen": {
+      "main": [
+        [
+          {
+            "node": "Etwas zu melden?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Etwas zu melden?": {
+      "main": [
+        [
+          {
+            "node": "Telegram senden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ereignis WACHE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram senden": {
+      "main": [
+        [
+          {
+            "node": "Ereignis WACHE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Berlin",
+    "errorWorkflow": "HLOJsWSboUnvLnFf",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "active": false,
+  "tags": []
+}
