@@ -1,0 +1,799 @@
+{
+  "name": "Immo C1 Leser Expose (Phase 1b, v3)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -600,
+        0
+      ],
+      "id": "8df5c8a7-175c-4235-8b0a-1e3c04796233",
+      "name": "Alle 15 Minuten"
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "mailboxPath": {
+          "__rl": true,
+          "mode": "list",
+          "value": "INBOX",
+          "cachedResultName": "INBOX",
+          "cachedResultUrl": ""
+        },
+        "emailDateRange": {},
+        "emailFlags": {
+          "seen": false
+        },
+        "emailSearchFilters": {},
+        "includeParts": [
+          "textContent",
+          "htmlContent",
+          "attachmentsInfo"
+        ]
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        0
+      ],
+      "id": "54cf6d9d-d221-4246-89b4-b92d49dfa824",
+      "name": "IMAP Maklerpost lesen",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      },
+      "alwaysOutputData": true,
+      "notes": "Holt alle ungelesenen Mails. Suchauftragsmails von myscout@ holt S1 und werden hier verworfen."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// C1 Leser, Schritt 1: Maklerpost filtern.\n// Betreff und Absender stehen bei n8n-nodes-imap unter envelope, nicht direkt im Item.\n// Suchauftragsmails von myscout@immobilienscout24.de holt S1 und werden hier verworfen.\nconst ohneTags = h => String(h || '')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<br\\s*\\/?>/gi, '\\n')\n  .replace(/<\\/p>/gi, '\\n')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/g, ' ')\n  .replace(/&amp;/g, '&')\n  .replace(/[ \\t]+/g, ' ');\n\nconst raus = [];\nfor (const item of $input.all()) {\n  const j = item.json || {};\n  const e = j.envelope || {};\n  const betreff = String(e.subject || j.subject || '');\n  const absender = []\n    .concat(e.from || [])\n    .map(a => String((a && a.address) || '')).join(', ') || String(j.from || '');\n  if (absender.toLowerCase().includes('myscout@immobilienscout24.de')) continue;\n  const text = String(j.textContent || '').trim() || ohneTags(j.htmlContent);\n  const suchraum = betreff + '\\n' + text;\n  const treffer = [...suchraum.matchAll(/\\b(\\d{8,12})\\b/g)].map(m => m[1]);\n  const info = Array.isArray(j.attachmentsInfo) ? j.attachmentsInfo : [];\n  const anhaenge = info.filter(a => /pdf/i.test(String(a.contentType || a.filename || '')));\n  raus.push({ json: {\n    uid: j.uid,\n    betreff: betreff,\n    absender: absender,\n    empfangen_am: e.date || j.date || null,\n    mailtext: text,\n    kandidaten: [...new Set(treffer)],\n    hat_pdf: anhaenge.length > 0,\n  }});\n}\nreturn raus;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "8840d5c1-2111-46ea-8438-ddcd6f334a2e",
+      "name": "Maklerpost filtern"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "28604d5c-9b2a-439a-8e85-d84d5ce20640",
+              "leftValue": "={{ $json.hat_pdf }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        60,
+        0
+      ],
+      "id": "81b078a1-bcb4-459c-b478-44db0f1fa0e1",
+      "name": "Hat PDF?"
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "operation": "downloadAttachment",
+        "mailboxPath": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $json.uid }}",
+        "allAttachments": true,
+        "includeInlineAttachments": false
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -220
+      ],
+      "id": "efeda5c0-9a98-42d1-bbdf-e4486cae7749",
+      "name": "IMAP: Anhang laden",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {
+          "joinPages": true
+        },
+        "destinationKey": "pdf_text"
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -120
+      ],
+      "id": "75877839-8931-4985-adcd-8f6a6a4e6f25",
+      "name": "PDF-Text holen",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// S2 Schwaerzer (E38): Hausnummer und Kontaktdaten raus, Strasse und Stadtteil bleiben.\n// Eingabe: die gefilterten Mails, bei PDF zusaetzlich der ausgelesene Text.\n// Ausgabe: ein Item je Mail mit geschwaerztem Text. Fail-closed: ohne Text kein Modellaufruf.\n// Die Anhangstexte kommen ohne UID zurueck. Sie stehen aber in derselben Reihenfolge\n// wie die Mails mit Anhang. Stimmt die Zahl nicht, wird kein Anhang zugeordnet (fail-closed).\n// Der Knoten \"Extract From PDF\" legt den Text unter text ab.\nconst pdfTexte = $input.all().map(i => String(((i.json || {}).pdf_text) || ((i.json || {}).text) || '')).filter(Boolean);\nconst mails = $('Maklerpost filtern').all();\nconst mitPdf = mails.filter(i => (i.json || {}).hat_pdf).length;\nconst passt = pdfTexte.length === mitPdf;\nlet k = 0;\n\nfunction schwaerzen(t) {\n  let s = String(t || '');\n  s = s.replace(/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b/g, '[Kontakt entfernt]');\n  s = s.replace(/https?:\\/\\/\\S+/g, '[Verweis entfernt]');\n  s = s.replace(/\\bwww\\.\\S+/gi, '[Verweis entfernt]');\n  // Rufnummern: +49..., 0221/..., 0170 ...\n  s = s.replace(/(?<![\\d])(?:\\+\\d{1,3}[\\s\\/-]?)?\\(?0\\d{2,5}\\)?[\\s\\/-]?\\d{3,}(?:[\\s\\/-]?\\d+)*/g, m =>\n    (m.replace(/\\D/g, '').length >= 7 ? '[Rufnummer entfernt]' : m));\n  // Hausnummer nach einem Strassennamen: Wort auf -strasse/-str./-weg/-platz/-allee/-gasse/-ring/-damm\n  s = s.replace(/([A-ZÄÖÜ][\\wÄÖÜäöüß.-]*(?:stra(?:ß|ss)e|str\\.|weg|platz|allee|gasse|ring|damm|ufer|chaussee))\\s+\\d+\\s*[a-zA-Z]?\\b/g,\n    '$1 [Hausnummer entfernt]');\n  return s.replace(/[ \\t]{2,}/g, ' ').trim();\n}\n\nconst raus = [];\nfor (const i of mails) {\n  const j = i.json || {};\n  const pdf = (j.hat_pdf && passt) ? (pdfTexte[k++] || '') : '';\n  const teile = [j.mailtext, pdf].filter(Boolean);\n  const roh = teile.join('\\n\\n--- Anhang ---\\n\\n');\n  const text = schwaerzen(roh);\n  const gekuerzt = text.slice(0, 60000);\n  const anweisung = [\n    'Du liest den Text eines Immobilien-Exposes und fuellst nur erlaubte Felder.',\n    'Erlaubt sind ausschliesslich: zimmer, etage, baujahr, stadtteil, ausstattung.',\n    'Verboten sind Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert. Nenne sie nie.',\n    'Fuelle ein Feld nur, wenn der Text es klar sagt. Sonst null.',\n    'Gib zu jedem gefuellten Feld ein woertliches Zitat aus dem Text.',\n    'Antworte nur mit JSON in dieser Form:',\n    '{\"zimmer\": Zahl oder null, \"etage\": Text oder null, \"baujahr\": Zahl oder null,',\n    ' \"stadtteil\": Text oder null, \"ausstattung\": [Text], \"belege\": {\"feld\": \"Zitat\"}}',\n  ].join('\\n');\n  raus.push({ json: {\n    uid: j.uid,\n    betreff: schwaerzen(j.betreff),\n    empfangen_am: j.empfangen_am,\n    kandidaten: j.kandidaten || [],\n    expose_id: (j.kandidaten || [])[0] || '',\n    zeichen: gekuerzt.length,\n    lesbar: gekuerzt.length >= 200,      // fail-closed: zu wenig Text, kein Modellaufruf\n    text: gekuerzt,\n    body: {\n      model: 'gpt-oss-120b',\n      temperature: 0,\n      max_tokens: 3000,\n      reasoning_effort: 'low',   // gpt-oss denkt sonst das Fenster leer\n      response_format: { type: 'json_object' },\n      messages: [\n        { role: 'system', content: anweisung },\n        { role: 'user', content: gekuerzt },\n      ],\n    },\n  }});\n}\nreturn raus;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ],
+      "id": "dad14f8b-056c-46fb-8fa2-6630ee8905cd",
+      "name": "S2 Schwaerzer"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e242a636-76d2-471c-9171-93b00629f892",
+              "leftValue": "={{ $json.lesbar }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "16720548-fea1-445b-a12f-6c8017ede6f5",
+      "name": "Lesbar?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jetson-thor.fritz.box:4000/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 300000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        -120
+      ],
+      "id": "b531f272-c648-4244-9c7c-711e35172abd",
+      "name": "C1 Leser (lokales Modell)",
+      "credentials": {
+        "openAiApi": {
+          "name": "LiteLLM immo"
+        }
+      },
+      "notes": "LiteLLM auf dem Thor, Schluessel immo, nur gpt-oss-120b."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// C1 Leser, Schritt 3: Antwort des lokalen Modells pruefen.\n// Positivliste nach Konzept 5.7: nur zimmer, etage, baujahr, stadtteil, ausstattung.\n// Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt (R6).\n// Gefuellte Felder tragen die Marke \"modell\" und zaehlen nicht in die Belegdichte (R8).\nconst ERLAUBT = ['zimmer', 'etage', 'baujahr', 'stadtteil', 'ausstattung'];\n\nconst quelle = $('S2 Schwaerzer').all();\nconst raus = [];\nconst antworten = $input.all();\n\nfor (let i = 0; i < antworten.length; i++) {\n  const a = (antworten[i] || {}).json || {};\n  const q = ((quelle[i] || {}).json) || {};\n  let felder = {}, grund = '';\n\n  const inhalt = a.choices && a.choices[0] && a.choices[0].message\n    ? (a.choices[0].message.content || '') : '';\n  if (!inhalt) grund = 'keine Antwort vom Modell';\n\n  if (inhalt) {\n    const start = inhalt.indexOf('{'), ende = inhalt.lastIndexOf('}');\n    try {\n      const roh = JSON.parse(start >= 0 ? inhalt.slice(start, ende + 1) : inhalt);\n      const belege = (roh && typeof roh.belege === 'object' && roh.belege) || {};\n      for (const k of ERLAUBT) {\n        let w = roh ? roh[k] : null;\n        if (w === undefined || w === null || w === '') continue;\n        if (k === 'ausstattung') {\n          w = Array.isArray(w) ? w.map(x => String(x)).filter(Boolean).slice(0, 12) : [String(w)];\n          if (!w.length) continue;\n        }\n        if (k === 'zimmer' || k === 'baujahr') {\n          const z = Number(String(w).replace(',', '.'));\n          if (!isFinite(z)) continue;\n          w = z;\n        }\n        felder[k] = { wert: w, marke: 'modell', beleg: String(belege[k] || '').slice(0, 300) };\n      }\n    } catch (e) { grund = 'Antwort war kein JSON'; }\n  }\n\n  const anzahl = Object.keys(felder).length;\n  raus.push({ json: {\n    uid: q.uid,\n    expose_id: String(q.expose_id || ''),\n    objekt_schluessel: q.expose_id ? ('is24:' + q.expose_id) : '',\n    expose_status: anzahl ? 'gelesen' : 'ohne_felder',\n    expose_grund: grund,\n    expose_am: new Date().toISOString(),\n    expose_felder: JSON.stringify(felder),\n    anzahl_felder: anzahl,\n    betreff: q.betreff || '',\n  }});\n}\nreturn raus;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        -120
+      ],
+      "id": "41e3bff6-3dde-477b-b3e0-95427f88e6a4",
+      "name": "Antwort pruefen"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "expose_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.expose_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "expose_status": "={{ $json.expose_status }}",
+            "expose_am": "={{ $json.expose_am }}",
+            "expose_felder": "={{ $json.expose_felder }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "expose_status",
+              "displayName": "expose_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expose_am",
+              "displayName": "expose_am",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expose_felder",
+              "displayName": "expose_felder",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1380,
+        -120
+      ],
+      "id": "fdbea457-64e7-4867-b5b9-55ce6c661f25",
+      "name": "objekt: Exposefelder schreiben",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "d6rJmS98tcnUCPiw",
+          "mode": "list",
+          "cachedResultName": "ereignis",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/d6rJmS98tcnUCPiw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "objekt_schluessel": "={{ $('Antwort pruefen').item.json.objekt_schluessel }}",
+            "typ": "EXPOSE",
+            "zeit": "={{ $now.toISO() }}",
+            "lauf_id": "={{ $execution.id }}",
+            "quelle": "mail",
+            "nutzlast": "={{ JSON.stringify({expose_id: $('Antwort pruefen').item.json.expose_id, status: $('Antwort pruefen').item.json.expose_status, felder: $('Antwort pruefen').item.json.anzahl_felder}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "objekt_schluessel",
+              "displayName": "objekt_schluessel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "typ",
+              "displayName": "typ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "zeit",
+              "displayName": "zeit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lauf_id",
+              "displayName": "lauf_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "quelle",
+              "displayName": "quelle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nutzlast",
+              "displayName": "nutzlast",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        -120
+      ],
+      "id": "3c157621-2c7f-4163-9703-e23d8109c5c6",
+      "name": "Ereignis EXPOSE"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// UIDs der verarbeiteten Mails einsammeln (ein Item fuer den IMAP-Abschluss).\nconst liste = $('Antwort pruefen').all().map(i => (i.json || {}).uid).filter(u => u !== undefined && u !== null);\nreturn [{ json: { uid_list: liste.join(',') } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        -120
+      ],
+      "id": "16ff7613-52ce-4ceb-b111-c996a2997dae",
+      "name": "UIDs einsammeln",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "operation": "setEmailFlags",
+        "mailboxPath": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $json.uid_list }}",
+        "flags": {
+          "\\Seen": true
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        -120
+      ],
+      "id": "18660fb3-bcae-433a-923f-c12cfcab9363",
+      "name": "IMAP: als gelesen markieren",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "operation": "moveEmail",
+        "sourceMailbox": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $('UIDs einsammeln').first().json.uid_list }}",
+        "destinationMailbox": {
+          "__rl": true,
+          "value": "INBOX/Archiv",
+          "mode": "list",
+          "cachedResultName": "INBOX/Archiv"
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2260,
+        -120
+      ],
+      "id": "412e03a4-febf-47ca-ab61-bc6e8e01b2f6",
+      "name": "IMAP: nach Immo/Archiv",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// UIDs der unlesbaren Mails einsammeln.\nconst liste = $('S2 Schwaerzer').all().filter(i => !(i.json || {}).lesbar).map(i => i.json.uid).filter(u => u !== undefined && u !== null);\nreturn [{ json: { uid_list: liste.join(',') } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        140
+      ],
+      "id": "947a0d5e-9727-4b36-b3d2-0f4a2fd82ee5",
+      "name": "UIDs unlesbar einsammeln",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "operation": "setEmailFlags",
+        "mailboxPath": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $json.uid_list }}",
+        "flags": {
+          "\\Seen": true
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        140
+      ],
+      "id": "d02c4560-80b8-40e6-88f6-7102caef4860",
+      "name": "IMAP: unlesbar als gelesen",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "email",
+        "operation": "moveEmail",
+        "sourceMailbox": {
+          "__rl": true,
+          "value": "INBOX",
+          "mode": "path"
+        },
+        "emailUid": "={{ $('UIDs unlesbar einsammeln').first().json.uid_list }}",
+        "destinationMailbox": {
+          "__rl": true,
+          "value": "INBOX/DLQ",
+          "mode": "list",
+          "cachedResultName": "INBOX/DLQ"
+        }
+      },
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        140
+      ],
+      "id": "0f87e640-5482-4742-bc74-ad4a5dea7138",
+      "name": "IMAP: unlesbar nach Immo/DLQ",
+      "credentials": {
+        "imapApi": {
+          "id": "cKgIjBArVwkGZYu9",
+          "name": "IMAP immo (immo@rosenkranz.cologne)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### C1 Leser mit S2 Schwaerzer (Phase 1b)\n\nAlle 15 Minuten holt dieser Ablauf die ungelesenen Mails, die NICHT von\nmyscout@immobilienscout24.de kommen. Das sind die Antworten der Makler.\n\nS2 Schwaerzer entfernt Rufnummern, Mailadressen, Verweise und Hausnummern,\nbevor Text den Thor erreicht (E38, R19). Strasse und Stadtteil bleiben.\n\nC1 fragt das lokale Modell ueber LiteLLM (Schluessel immo). Es fuellt nur die\nPositivliste aus Konzept 5.7: zimmer, etage, baujahr, stadtteil, ausstattung.\nPreis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt.\nGefuellte Felder tragen die Marke modell und zaehlen nicht in die Belegdichte.\n\nEINRICHTUNG:\n1. Tabelle objekt braucht die Spalten expose_status, expose_am, expose_felder (alle String).\n2. Im Knoten \"C1 Leser (lokales Modell)\" die Zugangsdaten \"LiteLLM immo\" auswaehlen.\n3. Im Knoten \"IMAP Maklerpost lesen\" pruefen, dass \"Attachments\" unter\n   Include Message Parts steht.\n",
+        "height": 480,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        260
+      ],
+      "id": "f2ce7865-688c-4c01-9b66-3958b2cdc82e",
+      "name": "Sticky: C1"
+    }
+  ],
+  "connections": {
+    "Alle 15 Minuten": {
+      "main": [
+        [
+          {
+            "node": "IMAP Maklerpost lesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAP Maklerpost lesen": {
+      "main": [
+        [
+          {
+            "node": "Maklerpost filtern",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Maklerpost filtern": {
+      "main": [
+        [
+          {
+            "node": "Hat PDF?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hat PDF?": {
+      "main": [
+        [
+          {
+            "node": "IMAP: Anhang laden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "S2 Schwaerzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAP: Anhang laden": {
+      "main": [
+        [
+          {
+            "node": "PDF-Text holen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF-Text holen": {
+      "main": [
+        [
+          {
+            "node": "S2 Schwaerzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S2 Schwaerzer": {
+      "main": [
+        [
+          {
+            "node": "Lesbar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lesbar?": {
+      "main": [
+        [
+          {
+            "node": "C1 Leser (lokales Modell)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "UIDs unlesbar einsammeln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C1 Leser (lokales Modell)": {
+      "main": [
+        [
+          {
+            "node": "Antwort pruefen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Antwort pruefen": {
+      "main": [
+        [
+          {
+            "node": "objekt: Exposefelder schreiben",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "objekt: Exposefelder schreiben": {
+      "main": [
+        [
+          {
+            "node": "Ereignis EXPOSE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ereignis EXPOSE": {
+      "main": [
+        [
+          {
+            "node": "UIDs einsammeln",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UIDs einsammeln": {
+      "main": [
+        [
+          {
+            "node": "IMAP: als gelesen markieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAP: als gelesen markieren": {
+      "main": [
+        [
+          {
+            "node": "IMAP: nach Immo/Archiv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UIDs unlesbar einsammeln": {
+      "main": [
+        [
+          {
+            "node": "IMAP: unlesbar als gelesen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAP: unlesbar als gelesen": {
+      "main": [
+        [
+          {
+            "node": "IMAP: unlesbar nach Immo/DLQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "HLOJsWSboUnvLnFf",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "immo"
+  }
+}
