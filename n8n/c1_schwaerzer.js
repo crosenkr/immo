@@ -52,7 +52,7 @@ for (const i of mails) {
     kandidaten: j.kandidaten || [],
     expose_id: (j.kandidaten || [])[0] || '',
     zeichen: gekuerzt.length,
-    lesbar: gekuerzt.length >= 200,      // fail-closed: zu wenig Text, kein Modellaufruf
+    lesbar: gekuerzt.length >= 200 && !!((j.kandidaten || [])[0]),   // ohne Exposenummer kein Modellaufruf
     text: gekuerzt,
     body: {
       model: 'gpt-oss-120b',
