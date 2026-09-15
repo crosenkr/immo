@@ -29,12 +29,19 @@ filtern = open('c1_filter.js', encoding='utf-8').read()
 schwaerzer = open('c1_schwaerzer.js', encoding='utf-8').read()
 antwort = open('c1_antwort.js', encoding='utf-8').read()
 
-uids = """// UIDs der verarbeiteten Mails einsammeln (ein Item fuer den IMAP-Abschluss).
-const liste = $('Antwort pruefen').all().map(i => (i.json || {}).uid).filter(u => u !== undefined && u !== null);
+uids = """// UIDs der verarbeiteten Mails einsammeln. Ohne UID endet der Zweig hier.
+const liste = $('Antwort pruefen').all()
+  .map(i => (i.json || {}).uid)
+  .filter(u => u !== undefined && u !== null);
+if (!liste.length) return [];
 return [{ json: { uid_list: liste.join(',') } }];
 """
-uids_dlq = """// UIDs der unlesbaren Mails einsammeln.
-const liste = $('S2 Schwaerzer').all().filter(i => !(i.json || {}).lesbar).map(i => i.json.uid).filter(u => u !== undefined && u !== null);
+uids_dlq = """// UIDs der unlesbaren Mails einsammeln. Ohne UID endet der Zweig hier.
+const liste = $('S2 Schwaerzer').all()
+  .filter(i => !(i.json || {}).lesbar)
+  .map(i => (i.json || {}).uid)
+  .filter(u => u !== undefined && u !== null);
+if (!liste.length) return [];
 return [{ json: { uid_list: liste.join(',') } }];
 """
 
@@ -157,7 +164,7 @@ conn = {
  "IMAP: unlesbar als gelesen": {"main": [[{"node": "IMAP: unlesbar nach Immo/DLQ", "type": "main", "index": 0}]]},
 }
 
-wf = {"name": "Immo C1 Leser Expose (Phase 1b, v2)", "nodes": nodes, "connections": conn,
+wf = {"name": "Immo C1 Leser Expose (Phase 1b, v5)", "nodes": nodes, "connections": conn,
       "settings": {"executionOrder": "v1", "binaryMode": "separate", "timeSavedMode": "fixed",
                    "errorWorkflow": "HLOJsWSboUnvLnFf", "callerPolicy": "workflowsFromSameOwner",
                    "executionTimeout": -1, "availableInMCP": False},
