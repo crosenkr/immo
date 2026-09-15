@@ -101,3 +101,56 @@ S3 Buchhalter v2 liegt als n8n/s3-buchhalter.json bereit. Der Code entsteht aus 
 Entscheidungen: E34 Der Digest sortiert je Profil erst nach Deckelstatus, dann nach Vorscore. E35 Zwangsversteigerungen sind eine Ausbaustufe (Vorschlag Christoph, noch nicht im Konzept). Quellen sind das ZVG-Portal und die Terminliste des Amtsgerichts Koeln. Der Termin liegt nach Phase 2.
 
 Offen: In objekt sechs Spalten anlegen (referenzpreis_eur, referenz_qm, preisabstand_pct, zielgebot_eur als number; referenz_band, referenz_quelle als string). Danach S3 v2 importieren und die 90 Objekte einmal neu bewerten lassen (zustand auf neu setzen). Die Geometrie-Pruefung der Stadtteilzuordnung bleibt offen.
+
+## Stand 15.09.2026: Phase 1a abgeschlossen, Phase 1b in Betrieb
+
+### Was seit dem 10.09.2026 dazugekommen ist
+
+**S3 Buchhalter v2** ist seit 11.09.2026 in Betrieb. Die sechs Spalten sind angelegt, der alte S3 ist geloescht, 93 Objekte wurden neu bewertet und gemeldet. Korrektur im Ereignis-Knoten: objekt_schluessel kommt aus $json, nicht aus dem alten Knotennamen (Commit 7ae7443).
+
+**S5 Waechter** laeuft taeglich 7:20. Er meldet nur bei Befund: ungelesene Mails aelter als zwei Stunden, DLQ, Objekte, die in neu oder vorbewertet haengen, kein neues Objekt seit drei Tagen, leere ereignis-Tabelle. Sonntags kommt eine Wochenrueckschau dazu.
+
+**Referenzband geprueft.** Der Vergleich gegen die Kaufpreisspannen des Marktberichts ergab bei Wohnungen einen Median von 0,95 ueber 45 Stadtteile und bei Haeusern 1,00 ueber 53. Ein echter Fehler wurde gefunden und behoben: die Zone "Marienburg / Bayenthal Sued" galt faelschlich fuer ganz Bayenthal (Faktor 2,35). Rest: Weiss liegt bei 1,17, weil Suerth und Weiss sich eine Zone teilen. Die Geometrie-Pruefung gegen die Stadtteilgrenzen bleibt offen; opengeodata.nrw.de war aus der Cowork-Sitzung nicht erreichbar.
+
+**S6 Kachel** schreibt alle 30 Minuten sensor.immo_objekte. immo.yaml liegt in packages/, die Dashboard-Karte unter homeassistant/. Stand der ersten Messung: 64 von 93 Objekten unter dem Deckel, 16 Verhandlungsfaelle.
+
+**S7 Expose-Anfrage** ist der Telegram-Rueckkanal (E36). Alle zwei Minuten fragt n8n getUpdates ab. Der Befehl /e<Exposenummer> liefert Link und fertigen Anfragetext; gesendet wird in der IS24-App von Hand, weil Ziffer 8.2 der Verbraucher-AGB automatisierte Nutzung verbietet und jede Anfrage einen Maklernachweis begruendet. Neue Spalten in objekt: anfrage_status, angefragt_am. S4 v4 zeigt die antippbare Zeile "Expose anfragen: /e..." ab Vorscore 55.
+
+**LiteLLM hat eine Datenbank.** Ohne DATABASE_URL gibt es keine Oberflaeche und keine virtuellen Schluessel ("Not connected to DB!"). Die Datenbank laeuft als eigener Portainer-Stack litellm-db (postgres:17) auf dem Synology NAS, Port 5433, erreichbar ueber 192.168.178.163. Die Zugangsdaten stehen in /home/crosenkr/data/litellm/.env (chmod 600). Erster virtueller Schluessel: immo, nur gpt-oss-120b.
+
+**C1 Leser Expose** laeuft alle 15 Minuten (E37, E38). Kette: ungelesene Mail lesen, die nicht von myscout@immobilienscout24.de kommt, PDF-Anhang laden und Text ziehen, S2 schwaerzen (Rufnummern, Mailadressen, Verweise, Hausnummern; Strasse und Stadtteil bleiben), lokales Modell ueber LiteLLM fragen, Antwort pruefen, Spalten expose_status, expose_am und expose_felder schreiben. S1 hat dafuer den Absenderfilter "From Contains myscout@immobilienscout24.de" bekommen.
+
+Die Positivliste aus Konzept 5.7 haelt: im Test standen Kaufpreis 925.000 Euro, Wohnflaeche 220 m2 und Energieeffizienzklasse F deutlich im Expose, und keines dieser Felder kam durch.
+
+**Zitatanker (R1, R7).** Jeder Beleg muss woertlich im geschwaerzten Text stehen. Steht er nicht dort, traegt das Feld beleg_geprueft = false; der Wert bleibt, gilt aber als unbelegt. Der Prompt verlangt seit dem 15.09. eine zusammenhaengende Stelle, Zeichen fuer Zeichen, kein Zusammensetzen. Davor setzte das Modell Belege aus zwei Stellen zusammen; danach waren alle Belege im Test woertlich.
+
+**C2 Rechner** laeuft alle 30 Minuten. Er leitet aus baujahr und ausstattung den Bauzustand ab: Sockel aus dem Baujahr (ab 2015: 90, ab 2000: 80, ab 1980: 65, ab 1950: 50, davor: 45), Stichworte heben oder senken ihn (kernsaniert +20, saniert +15, modernisiert +12, neuwertig +10, energetisch +8; sanierungsbeduerftig -30, Modernisierungsstau -25, Altbestand -20, unsaniert -15). Der Zustand geht in den Vorscore, nicht in die Belegdichte (Konzept 5.7, R8). Herleitung steht in bewertung_json unter zustand_modell und im Ereignis C2. Test: Vorscore 91 auf 83 bei Zustand 62, Belegdichte unveraendert 0,40.
+
+### Merkposten aus der Umsetzung
+
+- Der Home-Assistant-Knoten erwartet Attribute im Parameter stateAttributes. Unter "attributes" werden sie still ignoriert: der Zustand kommt an, die Attribute fehlen.
+- "Always Output Data" an einem Code-Knoten erzeugt ohne Treffer ein leeres Element, das die Folgeknoten mit leeren Feldern durchlaufen.
+- Die Abrufmarke aus $getWorkflowStaticData ueberlebt den Lauf nicht. S7 bestaetigt die Updates deshalb mit einem eigenen Knoten direkt bei Telegram.
+- Bei n8n-nodes-imap stehen Betreff und Absender unter envelope, nicht direkt im Item. Der Lesebefehl liefert nur Anhangsinfos; die Datei holt die eigene Aktion "Download Attachment". "Extract From PDF" legt den Text unter text ab.
+- Eine leere UID-Liste laesst IMAP mit "Unable to set flags" scheitern. Die Sammelknoten geben deshalb ein leeres Ergebnis zurueck, das den Zweig anhaelt.
+- docker restart liest eine geaenderte --env-file nicht neu; der Container muss neu erzeugt werden. Auf dem Jetson Thor fehlt das Compose-Plugin.
+- gpt-oss-120b verbraucht das ganze Tokenfenster mit reasoning_content und antwortet dann leer. max_tokens 3000 und reasoning_effort low loesen das.
+
+### Entscheidungen
+
+- **E36** (11.09.2026) Exposes kommen ueber eine Anfrage beim Makler in den Posteingang, ausgeloest per Telegram-Knopf je Objekt, nur ab Vorscore 55. Vollautomatisches Absenden des Kontaktformulars ist verworfen (IS24-AGB Ziffer 8.2, Maklernachweis).
+- **E37** (11.09.2026) C1 liest mit dem lokalen Modell ueber LiteLLM, Schluessel immo.
+- **E38** (11.09.2026) S2 schwaerzt Hausnummer und Kontaktdaten. Strasse und Stadtteil bleiben (R19).
+- **E39** (15.09.2026) Ein Beleg, der nicht woertlich im Text steht, verwirft das Feld nicht, sondern kennzeichnet es mit beleg_geprueft = false.
+- **E40** (15.09.2026) Eine Mail ohne Exposenummer geht gar nicht erst ans Modell, sondern nach Immo/DLQ.
+
+### Offen
+
+- OFFEN: Objektcluster gegen Dubletten. Der Digest vom 15.09. zeigt dieselbe Wohnung zweimal und dasselbe Bauvorhaben dreimal, jeweils mit verschiedenen Exposenummern. Ein Cluster ueber Titel, Preis und Flaeche gehoert nach S3.
+- OFFEN: Goldmenge aus fuenf bis zehn Exposes von Hand auswerten und gegen Prompt und Zustandsregeln messen. Lohnt erst, wenn genug echte Exposes eingegangen sind.
+- OFFEN: Die Sockelwerte je Baujahrklasse in C2 sind gesetzte Annahmen, nicht amtlich belegt. Gehoert nach ungeprueft.md.
+- OFFEN: Geometrie-Pruefung der Stadtteilzuordnung im Referenzband.
+- OFFEN: Parser gegen die erste Echtzeit-Benachrichtigung pruefen; die drei Zeilen mit suchauftrag "loeschen" aus dem Erstlauf von Hand auf "A Anlage" setzen.
+- OFFEN: docs/KONZEPT.md von Christoph hochladen.
+- OFFEN: E35 Zwangsversteigerungen. Quellen ZVG-Portal und Terminliste des Amtsgerichts Koeln. Termin nach Phase 2.
+- OFFEN: C3 Blindpruefer und C4 Aufbereiter (Phase 1b, Rest).
