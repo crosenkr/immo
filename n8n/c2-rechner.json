@@ -1,0 +1,316 @@
+{
+  "name": "Immo C2 Rechner (Phase 1b, v1)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "7b72fac7-6f0b-4058-9b74-9e2267440a13",
+      "name": "Alle 30 Minuten"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "returnAll": true,
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "expose_status",
+              "condition": "eq",
+              "keyValue": "gelesen"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        0
+      ],
+      "id": "8960a689-d9aa-4548-ab77-0db0382c60ca",
+      "name": "Gelesene Objekte holen",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// C2 Rechner (Phase 1b): rechnet aus den Exposefeldern den Bauzustand und daraus den Vorscore neu.\n// Deterministisch, ohne Modell (R3). Der Bauzustand traegt die Marke modell und zaehlt nicht in die\n// Belegdichte (Konzept 5.7, R8). Die Spalte zustand (neu/vorbewertet/gemeldet) wird nicht angefasst.\nconst GEWICHTE = {\n  A: { preisabstand_pct: 26, bruttorendite_pct: 19, zustand: 15, energieklasse: 13, ruecklage_deckung: 13, wohnlage_amtlich: 8, grundriss_zimmer: 6 },\n  B: { zustand: 22, preisabstand_pct: 20, energieklasse: 18, wohnflaeche_fit: 12, grundstueck_fit: 10, wohnlage_amtlich: 10, grundriss_zimmer: 8 },\n};\nconst VERSION = 'c2-2026-09-15.1';\n\n// Sockel nach Baujahr. Quelle: gesetzte Annahme, keine amtliche Zahl (ungeprueft.md).\nfunction sockel(bj) {\n  if (typeof bj !== 'number' || !isFinite(bj)) return null;\n  if (bj >= 2015) return 90;\n  if (bj >= 2000) return 80;\n  if (bj >= 1980) return 65;\n  if (bj >= 1950) return 50;\n  return 45;\n}\nconst HEBT = [\n  [/kernsaniert|kernsanierung/i, 20, 'kernsaniert'],\n  [/\\bsaniert\\b|\\bsanierung\\b/i, 15, 'saniert'],\n  [/modernisiert|modernisierung/i, 12, 'modernisiert'],\n  [/erstbezug|neuwertig|neubau/i, 10, 'neuwertig'],\n  [/energetisch/i, 8, 'energetisch verbessert'],\n];\nconst SENKT = [\n  [/sanierungsbed(ue|ü)rftig|renovierungsbed(ue|ü)rftig/i, 30, 'sanierungsbeduerftig'],\n  [/modernisierungsstau|instandsetzungsstau/i, 25, 'Modernisierungsstau'],\n  [/unsaniert|unrenoviert/i, 15, 'unsaniert'],\n  [/abrissobjekt|altbestand/i, 20, 'Altbestand'],\n];\n\nconst raus = [];\nfor (const it of $input.all()) {\n  const j = it.json || {};\n  const p = (j.profil === 'A' || j.profil === 'B') ? j.profil : null;\n  if (!p) continue;\n\n  let felder = {};\n  try { felder = JSON.parse(j.expose_felder || '{}'); } catch (e) { continue; }\n  if (!felder || !Object.keys(felder).length) continue;\n\n  const bj = felder.baujahr ? felder.baujahr.wert : null;\n  const liste = (felder.ausstattung && Array.isArray(felder.ausstattung.wert)) ? felder.ausstattung.wert : [];\n  const suchraum = [liste.join(' '), String(j.titel || '')].join(' ');\n\n  let wert = sockel(bj);\n  const gruende = [];\n  if (wert != null) gruende.push('Baujahr ' + bj + ' ergibt ' + wert);\n  for (const [re, plus, name] of HEBT) if (re.test(suchraum)) { wert = (wert == null ? 60 : wert) + plus; gruende.push('+' + plus + ' ' + name); }\n  for (const [re, minus, name] of SENKT) if (re.test(suchraum)) { wert = (wert == null ? 60 : wert) - minus; gruende.push('-' + minus + ' ' + name); }\n  if (wert == null) continue;                       // weder Baujahr noch Stichwort: nichts zu rechnen\n  wert = Math.max(0, Math.min(100, Math.round(wert)));\n\n  let bew = {};\n  try { bew = JSON.parse(j.bewertung_json || '{}'); } catch (e) { bew = {}; }\n  const punkte = Object.assign({}, bew.punkte || {});\n  punkte.zustand = wert;\n\n  const g = GEWICHTE[p];\n  let gsum = 0, wsum = 0, bsum = 0;\n  for (const [k, gew] of Object.entries(g)) {\n    if (typeof punkte[k] !== 'number') continue;\n    gsum += gew; wsum += gew * punkte[k];\n    if (k !== 'zustand') bsum += gew;               // Modellfeld zaehlt nicht in die Belegdichte\n  }\n  const vorscore = gsum ? Math.round(wsum / gsum) : null;\n  const belegdichte = Math.round(bsum) / 100;\n\n  bew.punkte = punkte;\n  bew.zustand_modell = { wert: wert, marke: 'modell', herleitung: gruende.join(', '), version: VERSION };\n  bew.hinweis = 'Zustand aus Baujahr und Ausstattung des Exposes (C2); Energie, Rendite und Ruecklage fehlen weiter';\n\n  raus.push({ json: {\n    objekt_schluessel: j.objekt_schluessel,\n    expose_id: j.expose_id,\n    vorscore_alt: (typeof j.vorscore === 'number') ? j.vorscore : null,\n    vorscore: vorscore,\n    belegdichte: belegdichte,\n    bewertung_json: JSON.stringify(bew),\n    zustand_punkte: wert,\n    herleitung: gruende.join(', '),\n  }});\n}\nreturn raus;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        40,
+        0
+      ],
+      "id": "f947b36c-6cc0-4bf8-a3fc-dca43de5263f",
+      "name": "Zustand und Vorscore rechnen"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RhcS6X5MWKzfAL22",
+          "mode": "list",
+          "cachedResultName": "objekt",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/RhcS6X5MWKzfAL22"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "objekt_schluessel",
+              "condition": "eq",
+              "keyValue": "={{ $json.objekt_schluessel }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "vorscore": "={{ $json.vorscore }}",
+            "belegdichte": "={{ $json.belegdichte }}",
+            "bewertung_json": "={{ $json.bewertung_json }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "vorscore",
+              "displayName": "vorscore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "belegdichte",
+              "displayName": "belegdichte",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "bewertung_json",
+              "displayName": "bewertung_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        0
+      ],
+      "id": "7d1d1d40-234d-4dd7-aff3-7b84fb43d726",
+      "name": "objekt: Vorscore aktualisieren"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "d6rJmS98tcnUCPiw",
+          "mode": "list",
+          "cachedResultName": "ereignis",
+          "cachedResultUrl": "/projects/Sbks7yJf8isk0OTm/datatables/d6rJmS98tcnUCPiw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "objekt_schluessel": "={{ $('Zustand und Vorscore rechnen').item.json.objekt_schluessel }}",
+            "typ": "C2",
+            "zeit": "={{ $now.toISO() }}",
+            "lauf_id": "={{ $execution.id }}",
+            "quelle": "rechnung",
+            "nutzlast": "={{ JSON.stringify({vorher: $('Zustand und Vorscore rechnen').item.json.vorscore_alt, nachher: $('Zustand und Vorscore rechnen').item.json.vorscore, zustand: $('Zustand und Vorscore rechnen').item.json.zustand_punkte, herleitung: $('Zustand und Vorscore rechnen').item.json.herleitung}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "objekt_schluessel",
+              "displayName": "objekt_schluessel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "typ",
+              "displayName": "typ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "zeit",
+              "displayName": "zeit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lauf_id",
+              "displayName": "lauf_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "quelle",
+              "displayName": "quelle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nutzlast",
+              "displayName": "nutzlast",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        0
+      ],
+      "id": "52c8c845-fc60-4535-970e-7c7c39c19ca1",
+      "name": "Ereignis C2"
+    },
+    {
+      "parameters": {
+        "content": "### C2 Rechner (Phase 1b)\n\nAlle 30 Minuten holt dieser Ablauf die Objekte mit expose_status = gelesen\nund rechnet aus den Exposefeldern den Bauzustand.\n\nSockel aus dem Baujahr, Stichworte heben oder senken ihn (kernsaniert,\nmodernisiert, sanierungsbeduerftig, Modernisierungsstau). Kein Modell (R3).\n\nDer Bauzustand traegt die Marke modell. Er geht in den Vorscore ein, aber\nNICHT in die Belegdichte (Konzept 5.7, R8). Die Herleitung steht in\nbewertung_json unter zustand_modell und im Ereignis C2.\n\nDie Spalte zustand (neu / vorbewertet / gemeldet) wird nicht angefasst.\nDer Lauf ist wiederholbar: er rechnet jedes Mal aus denselben Feldern.\n\nANNAHME, nicht amtlich belegt: die Sockelwerte je Baujahrklasse\n(ab 2015: 90, ab 2000: 80, ab 1980: 65, ab 1950: 50, davor: 45).\nGehoert nach ungeprueft.md.\n",
+        "height": 420,
+        "width": 520
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        200
+      ],
+      "id": "26110c3c-0dfe-4f5e-840a-c757db1ae043",
+      "name": "Sticky: C2"
+    }
+  ],
+  "connections": {
+    "Alle 30 Minuten": {
+      "main": [
+        [
+          {
+            "node": "Gelesene Objekte holen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gelesene Objekte holen": {
+      "main": [
+        [
+          {
+            "node": "Zustand und Vorscore rechnen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zustand und Vorscore rechnen": {
+      "main": [
+        [
+          {
+            "node": "objekt: Vorscore aktualisieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "objekt: Vorscore aktualisieren": {
+      "main": [
+        [
+          {
+            "node": "Ereignis C2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "HLOJsWSboUnvLnFf",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "immo"
+  }
+}
