@@ -1,5 +1,5 @@
 {
-  "name": "Immo C1 Leser Expose (Phase 1b, v3)",
+  "name": "Immo C1 Leser Expose (Phase 1b, v4 mit Zitatpruefung)",
   "nodes": [
     {
       "parameters": {
@@ -18,7 +18,7 @@
         -600,
         0
       ],
-      "id": "8df5c8a7-175c-4235-8b0a-1e3c04796233",
+      "id": "4c1d6598-79b2-4596-bd89-71f994fe49da",
       "name": "Alle 15 Minuten"
     },
     {
@@ -48,7 +48,7 @@
         -380,
         0
       ],
-      "id": "54cf6d9d-d221-4246-89b4-b92d49dfa824",
+      "id": "6fd8157f-cee6-45fc-ba39-c236f4a39112",
       "name": "IMAP Maklerpost lesen",
       "credentials": {
         "imapApi": {
@@ -70,7 +70,7 @@
         -160,
         0
       ],
-      "id": "8840d5c1-2111-46ea-8438-ddcd6f334a2e",
+      "id": "9fbcbc6d-afcf-4d6f-96e2-06e0b6d741ba",
       "name": "Maklerpost filtern"
     },
     {
@@ -84,7 +84,7 @@
           },
           "conditions": [
             {
-              "id": "28604d5c-9b2a-439a-8e85-d84d5ce20640",
+              "id": "10bb75cb-d0ad-41b2-ae94-ecf6f8e4034c",
               "leftValue": "={{ $json.hat_pdf }}",
               "rightValue": "",
               "operator": {
@@ -105,7 +105,7 @@
         60,
         0
       ],
-      "id": "81b078a1-bcb4-459c-b478-44db0f1fa0e1",
+      "id": "8f3d6886-a9c1-488d-92bf-8930618ab2da",
       "name": "Hat PDF?"
     },
     {
@@ -127,7 +127,7 @@
         280,
         -220
       ],
-      "id": "efeda5c0-9a98-42d1-bbdf-e4486cae7749",
+      "id": "57b3dc30-9441-407f-bde6-5c198463e236",
       "name": "IMAP: Anhang laden",
       "credentials": {
         "imapApi": {
@@ -152,14 +152,14 @@
         280,
         -120
       ],
-      "id": "75877839-8931-4985-adcd-8f6a6a4e6f25",
+      "id": "05d5e283-a182-42bb-a627-e45def30ed5c",
       "name": "PDF-Text holen",
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// S2 Schwaerzer (E38): Hausnummer und Kontaktdaten raus, Strasse und Stadtteil bleiben.\n// Eingabe: die gefilterten Mails, bei PDF zusaetzlich der ausgelesene Text.\n// Ausgabe: ein Item je Mail mit geschwaerztem Text. Fail-closed: ohne Text kein Modellaufruf.\n// Die Anhangstexte kommen ohne UID zurueck. Sie stehen aber in derselben Reihenfolge\n// wie die Mails mit Anhang. Stimmt die Zahl nicht, wird kein Anhang zugeordnet (fail-closed).\n// Der Knoten \"Extract From PDF\" legt den Text unter text ab.\nconst pdfTexte = $input.all().map(i => String(((i.json || {}).pdf_text) || ((i.json || {}).text) || '')).filter(Boolean);\nconst mails = $('Maklerpost filtern').all();\nconst mitPdf = mails.filter(i => (i.json || {}).hat_pdf).length;\nconst passt = pdfTexte.length === mitPdf;\nlet k = 0;\n\nfunction schwaerzen(t) {\n  let s = String(t || '');\n  s = s.replace(/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b/g, '[Kontakt entfernt]');\n  s = s.replace(/https?:\\/\\/\\S+/g, '[Verweis entfernt]');\n  s = s.replace(/\\bwww\\.\\S+/gi, '[Verweis entfernt]');\n  // Rufnummern: +49..., 0221/..., 0170 ...\n  s = s.replace(/(?<![\\d])(?:\\+\\d{1,3}[\\s\\/-]?)?\\(?0\\d{2,5}\\)?[\\s\\/-]?\\d{3,}(?:[\\s\\/-]?\\d+)*/g, m =>\n    (m.replace(/\\D/g, '').length >= 7 ? '[Rufnummer entfernt]' : m));\n  // Hausnummer nach einem Strassennamen: Wort auf -strasse/-str./-weg/-platz/-allee/-gasse/-ring/-damm\n  s = s.replace(/([A-ZÄÖÜ][\\wÄÖÜäöüß.-]*(?:stra(?:ß|ss)e|str\\.|weg|platz|allee|gasse|ring|damm|ufer|chaussee))\\s+\\d+\\s*[a-zA-Z]?\\b/g,\n    '$1 [Hausnummer entfernt]');\n  return s.replace(/[ \\t]{2,}/g, ' ').trim();\n}\n\nconst raus = [];\nfor (const i of mails) {\n  const j = i.json || {};\n  const pdf = (j.hat_pdf && passt) ? (pdfTexte[k++] || '') : '';\n  const teile = [j.mailtext, pdf].filter(Boolean);\n  const roh = teile.join('\\n\\n--- Anhang ---\\n\\n');\n  const text = schwaerzen(roh);\n  const gekuerzt = text.slice(0, 60000);\n  const anweisung = [\n    'Du liest den Text eines Immobilien-Exposes und fuellst nur erlaubte Felder.',\n    'Erlaubt sind ausschliesslich: zimmer, etage, baujahr, stadtteil, ausstattung.',\n    'Verboten sind Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert. Nenne sie nie.',\n    'Fuelle ein Feld nur, wenn der Text es klar sagt. Sonst null.',\n    'Gib zu jedem gefuellten Feld ein woertliches Zitat aus dem Text.',\n    'Antworte nur mit JSON in dieser Form:',\n    '{\"zimmer\": Zahl oder null, \"etage\": Text oder null, \"baujahr\": Zahl oder null,',\n    ' \"stadtteil\": Text oder null, \"ausstattung\": [Text], \"belege\": {\"feld\": \"Zitat\"}}',\n  ].join('\\n');\n  raus.push({ json: {\n    uid: j.uid,\n    betreff: schwaerzen(j.betreff),\n    empfangen_am: j.empfangen_am,\n    kandidaten: j.kandidaten || [],\n    expose_id: (j.kandidaten || [])[0] || '',\n    zeichen: gekuerzt.length,\n    lesbar: gekuerzt.length >= 200,      // fail-closed: zu wenig Text, kein Modellaufruf\n    text: gekuerzt,\n    body: {\n      model: 'gpt-oss-120b',\n      temperature: 0,\n      max_tokens: 3000,\n      reasoning_effort: 'low',   // gpt-oss denkt sonst das Fenster leer\n      response_format: { type: 'json_object' },\n      messages: [\n        { role: 'system', content: anweisung },\n        { role: 'user', content: gekuerzt },\n      ],\n    },\n  }});\n}\nreturn raus;\n"
+        "jsCode": "// S2 Schwaerzer (E38): Hausnummer und Kontaktdaten raus, Strasse und Stadtteil bleiben.\n// Eingabe: die gefilterten Mails, bei PDF zusaetzlich der ausgelesene Text.\n// Ausgabe: ein Item je Mail mit geschwaerztem Text. Fail-closed: ohne Text kein Modellaufruf.\n// Die Anhangstexte kommen ohne UID zurueck. Sie stehen aber in derselben Reihenfolge\n// wie die Mails mit Anhang. Stimmt die Zahl nicht, wird kein Anhang zugeordnet (fail-closed).\n// Der Knoten \"Extract From PDF\" legt den Text unter text ab.\nconst pdfTexte = $input.all().map(i => String(((i.json || {}).pdf_text) || ((i.json || {}).text) || '')).filter(Boolean);\nconst mails = $('Maklerpost filtern').all();\nconst mitPdf = mails.filter(i => (i.json || {}).hat_pdf).length;\nconst passt = pdfTexte.length === mitPdf;\nlet k = 0;\n\nfunction schwaerzen(t) {\n  let s = String(t || '');\n  s = s.replace(/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b/g, '[Kontakt entfernt]');\n  s = s.replace(/https?:\\/\\/\\S+/g, '[Verweis entfernt]');\n  s = s.replace(/\\bwww\\.\\S+/gi, '[Verweis entfernt]');\n  // Rufnummern: +49..., 0221/..., 0170 ...\n  s = s.replace(/(?<![\\d])(?:\\+\\d{1,3}[\\s\\/-]?)?\\(?0\\d{2,5}\\)?[\\s\\/-]?\\d{3,}(?:[\\s\\/-]?\\d+)*/g, m =>\n    (m.replace(/\\D/g, '').length >= 7 ? '[Rufnummer entfernt]' : m));\n  // Hausnummer nach einem Strassennamen: Wort auf -strasse/-str./-weg/-platz/-allee/-gasse/-ring/-damm\n  s = s.replace(/([A-ZÄÖÜ][\\wÄÖÜäöüß.-]*(?:stra(?:ß|ss)e|str\\.|weg|platz|allee|gasse|ring|damm|ufer|chaussee))\\s+\\d+\\s*[a-zA-Z]?\\b/g,\n    '$1 [Hausnummer entfernt]');\n  return s.replace(/[ \\t]{2,}/g, ' ').trim();\n}\n\nconst raus = [];\nfor (const i of mails) {\n  const j = i.json || {};\n  const pdf = (j.hat_pdf && passt) ? (pdfTexte[k++] || '') : '';\n  const teile = [j.mailtext, pdf].filter(Boolean);\n  const roh = teile.join('\\n\\n--- Anhang ---\\n\\n');\n  const text = schwaerzen(roh);\n  const gekuerzt = text.slice(0, 60000);\n  const anweisung = [\n    'Du liest den Text eines Immobilien-Exposes und fuellst nur erlaubte Felder.',\n    'Erlaubt sind ausschliesslich: zimmer, etage, baujahr, stadtteil, ausstattung.',\n    'Verboten sind Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert. Nenne sie nie.',\n    'Fuelle ein Feld nur, wenn der Text es klar sagt. Sonst null.',\n    'Gib zu jedem gefuellten Feld genau ein Zitat aus dem Text.',\n    'Das Zitat muss eine zusammenhaengende Stelle sein, Zeichen fuer Zeichen abgeschrieben.',\n    'Setze nie zwei Stellen zusammen, kuerze nicht mit Auslassungspunkten, formuliere nicht um.',\n    'Findest du keine einzelne Stelle, die den Wert traegt, setze das Feld auf null.',\n    'Antworte nur mit JSON in dieser Form:',\n    '{\"zimmer\": Zahl oder null, \"etage\": Text oder null, \"baujahr\": Zahl oder null,',\n    ' \"stadtteil\": Text oder null, \"ausstattung\": [Text], \"belege\": {\"feld\": \"Zitat\"}}',\n  ].join('\\n');\n  raus.push({ json: {\n    uid: j.uid,\n    betreff: schwaerzen(j.betreff),\n    empfangen_am: j.empfangen_am,\n    kandidaten: j.kandidaten || [],\n    expose_id: (j.kandidaten || [])[0] || '',\n    zeichen: gekuerzt.length,\n    lesbar: gekuerzt.length >= 200,      // fail-closed: zu wenig Text, kein Modellaufruf\n    text: gekuerzt,\n    body: {\n      model: 'gpt-oss-120b',\n      temperature: 0,\n      max_tokens: 3000,\n      reasoning_effort: 'low',   // gpt-oss denkt sonst das Fenster leer\n      response_format: { type: 'json_object' },\n      messages: [\n        { role: 'system', content: anweisung },\n        { role: 'user', content: gekuerzt },\n      ],\n    },\n  }});\n}\nreturn raus;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -167,7 +167,7 @@
         500,
         0
       ],
-      "id": "dad14f8b-056c-46fb-8fa2-6630ee8905cd",
+      "id": "e96bcfb1-94c5-4d2f-b702-fc7fb256298e",
       "name": "S2 Schwaerzer"
     },
     {
@@ -181,7 +181,7 @@
           },
           "conditions": [
             {
-              "id": "e242a636-76d2-471c-9171-93b00629f892",
+              "id": "84cb8fc8-9e69-4542-a1ed-9cffc1bcab92",
               "leftValue": "={{ $json.lesbar }}",
               "rightValue": "",
               "operator": {
@@ -202,7 +202,7 @@
         720,
         0
       ],
-      "id": "16720548-fea1-445b-a12f-6c8017ede6f5",
+      "id": "e1b1812a-9715-46d3-b7a9-ecfac139c96b",
       "name": "Lesbar?"
     },
     {
@@ -229,7 +229,7 @@
         940,
         -120
       ],
-      "id": "b531f272-c648-4244-9c7c-711e35172abd",
+      "id": "0a5e7443-3766-4c98-bbb0-db3f3a11c590",
       "name": "C1 Leser (lokales Modell)",
       "credentials": {
         "openAiApi": {
@@ -241,7 +241,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// C1 Leser, Schritt 3: Antwort des lokalen Modells pruefen.\n// Positivliste nach Konzept 5.7: nur zimmer, etage, baujahr, stadtteil, ausstattung.\n// Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt (R6).\n// Gefuellte Felder tragen die Marke \"modell\" und zaehlen nicht in die Belegdichte (R8).\nconst ERLAUBT = ['zimmer', 'etage', 'baujahr', 'stadtteil', 'ausstattung'];\n\nconst quelle = $('S2 Schwaerzer').all();\nconst raus = [];\nconst antworten = $input.all();\n\nfor (let i = 0; i < antworten.length; i++) {\n  const a = (antworten[i] || {}).json || {};\n  const q = ((quelle[i] || {}).json) || {};\n  let felder = {}, grund = '';\n\n  const inhalt = a.choices && a.choices[0] && a.choices[0].message\n    ? (a.choices[0].message.content || '') : '';\n  if (!inhalt) grund = 'keine Antwort vom Modell';\n\n  if (inhalt) {\n    const start = inhalt.indexOf('{'), ende = inhalt.lastIndexOf('}');\n    try {\n      const roh = JSON.parse(start >= 0 ? inhalt.slice(start, ende + 1) : inhalt);\n      const belege = (roh && typeof roh.belege === 'object' && roh.belege) || {};\n      for (const k of ERLAUBT) {\n        let w = roh ? roh[k] : null;\n        if (w === undefined || w === null || w === '') continue;\n        if (k === 'ausstattung') {\n          w = Array.isArray(w) ? w.map(x => String(x)).filter(Boolean).slice(0, 12) : [String(w)];\n          if (!w.length) continue;\n        }\n        if (k === 'zimmer' || k === 'baujahr') {\n          const z = Number(String(w).replace(',', '.'));\n          if (!isFinite(z)) continue;\n          w = z;\n        }\n        felder[k] = { wert: w, marke: 'modell', beleg: String(belege[k] || '').slice(0, 300) };\n      }\n    } catch (e) { grund = 'Antwort war kein JSON'; }\n  }\n\n  const anzahl = Object.keys(felder).length;\n  raus.push({ json: {\n    uid: q.uid,\n    expose_id: String(q.expose_id || ''),\n    objekt_schluessel: q.expose_id ? ('is24:' + q.expose_id) : '',\n    expose_status: anzahl ? 'gelesen' : 'ohne_felder',\n    expose_grund: grund,\n    expose_am: new Date().toISOString(),\n    expose_felder: JSON.stringify(felder),\n    anzahl_felder: anzahl,\n    betreff: q.betreff || '',\n  }});\n}\nreturn raus;\n"
+        "jsCode": "// C1 Leser, Schritt 3: Antwort des lokalen Modells pruefen.\n// Positivliste nach Konzept 5.7: nur zimmer, etage, baujahr, stadtteil, ausstattung.\n// Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt (R6).\n// Gefuellte Felder tragen die Marke \"modell\" und zaehlen nicht in die Belegdichte (R8).\nconst ERLAUBT = ['zimmer', 'etage', 'baujahr', 'stadtteil', 'ausstattung'];\n\n// Zitatanker (R1, R7): ein Beleg zaehlt nur, wenn er woertlich im geschwaerzten Text steht.\n// Verglichen wird ohne Mehrfachleerzeichen und ohne Gross- und Kleinschreibung.\nconst norm = t => String(t || '').replace(/\\s+/g, ' ').toLowerCase();\nconst belegtIm = (zitat, text) => {\n  const z = norm(zitat);\n  return z.length >= 8 && norm(text).includes(z);\n};\n\nconst quelle = $('S2 Schwaerzer').all();\nconst raus = [];\nconst antworten = $input.all();\n\nfor (let i = 0; i < antworten.length; i++) {\n  const a = (antworten[i] || {}).json || {};\n  const q = ((quelle[i] || {}).json) || {};\n  let felder = {}, grund = '';\n  const ungeprueft = [];\n\n  const inhalt = a.choices && a.choices[0] && a.choices[0].message\n    ? (a.choices[0].message.content || '') : '';\n  if (!inhalt) grund = 'keine Antwort vom Modell';\n\n  if (inhalt) {\n    const start = inhalt.indexOf('{'), ende = inhalt.lastIndexOf('}');\n    try {\n      const roh = JSON.parse(start >= 0 ? inhalt.slice(start, ende + 1) : inhalt);\n      const belege = (roh && typeof roh.belege === 'object' && roh.belege) || {};\n      for (const k of ERLAUBT) {\n        let w = roh ? roh[k] : null;\n        if (w === undefined || w === null || w === '') continue;\n        if (k === 'ausstattung') {\n          w = Array.isArray(w) ? w.map(x => String(x)).filter(Boolean).slice(0, 12) : [String(w)];\n          if (!w.length) continue;\n        }\n        if (k === 'zimmer' || k === 'baujahr') {\n          const z = Number(String(w).replace(',', '.'));\n          if (!isFinite(z)) continue;\n          w = z;\n        }\n        const zitat = String(belege[k] || '').slice(0, 300);\n        const geprueft = belegtIm(zitat, q.text);\n        if (!geprueft) ungeprueft.push(k);      // Wert bleibt, der Beleg gilt als nicht belegt (R1, R7)\n        felder[k] = { wert: w, marke: 'modell', beleg: zitat, beleg_geprueft: geprueft };\n      }\n    } catch (e) { grund = 'Antwort war kein JSON'; }\n  }\n\n  const anzahl = Object.keys(felder).length;\n  raus.push({ json: {\n    uid: q.uid,\n    expose_id: String(q.expose_id || ''),\n    objekt_schluessel: q.expose_id ? ('is24:' + q.expose_id) : '',\n    expose_status: anzahl ? 'gelesen' : 'ohne_felder',\n    expose_grund: grund || (ungeprueft.length ? ('Beleg nicht woertlich: ' + ungeprueft.join(', ')) : ''),\n    ungepruefte_felder: ungeprueft,\n    expose_am: new Date().toISOString(),\n    expose_felder: JSON.stringify(felder),\n    anzahl_felder: anzahl,\n    betreff: q.betreff || '',\n  }});\n}\nreturn raus;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -249,7 +249,7 @@
         1160,
         -120
       ],
-      "id": "41e3bff6-3dde-477b-b3e0-95427f88e6a4",
+      "id": "a734c7e1-c29c-47ff-b863-bcf4b9c1ac5c",
       "name": "Antwort pruefen"
     },
     {
@@ -323,7 +323,7 @@
         1380,
         -120
       ],
-      "id": "fdbea457-64e7-4867-b5b9-55ce6c661f25",
+      "id": "bd8e9433-5013-44d3-9e82-6297976e425e",
       "name": "objekt: Exposefelder schreiben",
       "onError": "continueRegularOutput"
     },
@@ -420,7 +420,7 @@
         1600,
         -120
       ],
-      "id": "3c157621-2c7f-4163-9703-e23d8109c5c6",
+      "id": "48b72f8a-0288-4ae8-b407-8b340a10ba77",
       "name": "Ereignis EXPOSE"
     },
     {
@@ -434,7 +434,7 @@
         1820,
         -120
       ],
-      "id": "16ff7613-52ce-4ceb-b111-c996a2997dae",
+      "id": "ccf93d86-74a7-4c30-9084-e0e4de7a29a1",
       "name": "UIDs einsammeln",
       "executeOnce": true
     },
@@ -458,7 +458,7 @@
         2040,
         -120
       ],
-      "id": "18660fb3-bcae-433a-923f-c12cfcab9363",
+      "id": "c91c86c6-c0d4-41a1-94d4-6be58e7cafb3",
       "name": "IMAP: als gelesen markieren",
       "credentials": {
         "imapApi": {
@@ -490,7 +490,7 @@
         2260,
         -120
       ],
-      "id": "412e03a4-febf-47ca-ab61-bc6e8e01b2f6",
+      "id": "5818bd50-7441-4f72-8507-5e6ff8f7b35d",
       "name": "IMAP: nach Immo/Archiv",
       "credentials": {
         "imapApi": {
@@ -510,7 +510,7 @@
         940,
         140
       ],
-      "id": "947a0d5e-9727-4b36-b3d2-0f4a2fd82ee5",
+      "id": "2861509c-5d3b-4f26-823c-a9044209717c",
       "name": "UIDs unlesbar einsammeln",
       "executeOnce": true
     },
@@ -534,7 +534,7 @@
         1160,
         140
       ],
-      "id": "d02c4560-80b8-40e6-88f6-7102caef4860",
+      "id": "b1cdcae4-67ef-433e-b986-a01a288f205d",
       "name": "IMAP: unlesbar als gelesen",
       "credentials": {
         "imapApi": {
@@ -566,7 +566,7 @@
         1380,
         140
       ],
-      "id": "0f87e640-5482-4742-bc74-ad4a5dea7138",
+      "id": "bf1a63e7-fcae-4230-b36c-b4203c9d830f",
       "name": "IMAP: unlesbar nach Immo/DLQ",
       "credentials": {
         "imapApi": {
@@ -577,7 +577,7 @@
     },
     {
       "parameters": {
-        "content": "### C1 Leser mit S2 Schwaerzer (Phase 1b)\n\nAlle 15 Minuten holt dieser Ablauf die ungelesenen Mails, die NICHT von\nmyscout@immobilienscout24.de kommen. Das sind die Antworten der Makler.\n\nS2 Schwaerzer entfernt Rufnummern, Mailadressen, Verweise und Hausnummern,\nbevor Text den Thor erreicht (E38, R19). Strasse und Stadtteil bleiben.\n\nC1 fragt das lokale Modell ueber LiteLLM (Schluessel immo). Es fuellt nur die\nPositivliste aus Konzept 5.7: zimmer, etage, baujahr, stadtteil, ausstattung.\nPreis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt.\nGefuellte Felder tragen die Marke modell und zaehlen nicht in die Belegdichte.\n\nEINRICHTUNG:\n1. Tabelle objekt braucht die Spalten expose_status, expose_am, expose_felder (alle String).\n2. Im Knoten \"C1 Leser (lokales Modell)\" die Zugangsdaten \"LiteLLM immo\" auswaehlen.\n3. Im Knoten \"IMAP Maklerpost lesen\" pruefen, dass \"Attachments\" unter\n   Include Message Parts steht.\n",
+        "content": "### C1 Leser mit S2 Schwaerzer (Phase 1b)\n\nAlle 15 Minuten holt dieser Ablauf die ungelesenen Mails, die NICHT von\nmyscout@immobilienscout24.de kommen. Das sind die Antworten der Makler.\n\nS2 Schwaerzer entfernt Rufnummern, Mailadressen, Verweise und Hausnummern,\nbevor Text den Thor erreicht (E38, R19). Strasse und Stadtteil bleiben.\n\nC1 fragt das lokale Modell ueber LiteLLM (Schluessel immo). Es fuellt nur die\nPositivliste aus Konzept 5.7: zimmer, etage, baujahr, stadtteil, ausstattung.\nPreis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt.\nGefuellte Felder tragen die Marke modell und zaehlen nicht in die Belegdichte.\n\nEINRICHTUNG:\n1. Tabelle objekt braucht die Spalten expose_status, expose_am, expose_felder (alle String).\n2. Im Knoten \"C1 Leser (lokales Modell)\" die Zugangsdaten \"LiteLLM immo\" auswaehlen.\n3. Im Knoten \"IMAP Maklerpost lesen\" muss \"Attachments Info\" unter\n   Include Message Parts stehen; die Datei selbst holt \"IMAP: Anhang laden\".\n\nZITATANKER: Jedes Feld traegt beleg_geprueft. Steht dort false, kam der Beleg\nnicht woertlich im Text vor. Der Wert bleibt, gilt aber als unbelegt (R1, R7).\n",
         "height": 480,
         "width": 560
       },
@@ -587,7 +587,7 @@
         -620,
         260
       ],
-      "id": "f2ce7865-688c-4c01-9b66-3958b2cdc82e",
+      "id": "f6f11d32-3dd5-4922-a053-997e59eb63cd",
       "name": "Sticky: C1"
     }
   ],
