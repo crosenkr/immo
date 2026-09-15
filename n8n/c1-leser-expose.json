@@ -1,5 +1,5 @@
 {
-  "name": "Immo C1 Leser Expose (Phase 1b, v4 mit Zitatpruefung)",
+  "name": "Immo C1 Leser Expose (Phase 1b, v5)",
   "nodes": [
     {
       "parameters": {
@@ -18,7 +18,7 @@
         -600,
         0
       ],
-      "id": "4c1d6598-79b2-4596-bd89-71f994fe49da",
+      "id": "560d7e66-3ca2-47f2-ac3c-626a75f788da",
       "name": "Alle 15 Minuten"
     },
     {
@@ -48,7 +48,7 @@
         -380,
         0
       ],
-      "id": "6fd8157f-cee6-45fc-ba39-c236f4a39112",
+      "id": "3021054d-a521-42ac-99bd-4b80dc3c1b26",
       "name": "IMAP Maklerpost lesen",
       "credentials": {
         "imapApi": {
@@ -70,7 +70,7 @@
         -160,
         0
       ],
-      "id": "9fbcbc6d-afcf-4d6f-96e2-06e0b6d741ba",
+      "id": "21c64312-0893-4528-9303-97dfd4012445",
       "name": "Maklerpost filtern"
     },
     {
@@ -84,7 +84,7 @@
           },
           "conditions": [
             {
-              "id": "10bb75cb-d0ad-41b2-ae94-ecf6f8e4034c",
+              "id": "9eeca43c-a1a3-4e7e-a405-e2a42526bdf2",
               "leftValue": "={{ $json.hat_pdf }}",
               "rightValue": "",
               "operator": {
@@ -105,7 +105,7 @@
         60,
         0
       ],
-      "id": "8f3d6886-a9c1-488d-92bf-8930618ab2da",
+      "id": "5dd89880-de27-4545-ab57-c63705f94327",
       "name": "Hat PDF?"
     },
     {
@@ -127,7 +127,7 @@
         280,
         -220
       ],
-      "id": "57b3dc30-9441-407f-bde6-5c198463e236",
+      "id": "e46633c7-3308-4523-9991-99696b2a2d60",
       "name": "IMAP: Anhang laden",
       "credentials": {
         "imapApi": {
@@ -152,14 +152,14 @@
         280,
         -120
       ],
-      "id": "05d5e283-a182-42bb-a627-e45def30ed5c",
+      "id": "31163ce1-6d30-4003-a8dd-abae0abad037",
       "name": "PDF-Text holen",
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// S2 Schwaerzer (E38): Hausnummer und Kontaktdaten raus, Strasse und Stadtteil bleiben.\n// Eingabe: die gefilterten Mails, bei PDF zusaetzlich der ausgelesene Text.\n// Ausgabe: ein Item je Mail mit geschwaerztem Text. Fail-closed: ohne Text kein Modellaufruf.\n// Die Anhangstexte kommen ohne UID zurueck. Sie stehen aber in derselben Reihenfolge\n// wie die Mails mit Anhang. Stimmt die Zahl nicht, wird kein Anhang zugeordnet (fail-closed).\n// Der Knoten \"Extract From PDF\" legt den Text unter text ab.\nconst pdfTexte = $input.all().map(i => String(((i.json || {}).pdf_text) || ((i.json || {}).text) || '')).filter(Boolean);\nconst mails = $('Maklerpost filtern').all();\nconst mitPdf = mails.filter(i => (i.json || {}).hat_pdf).length;\nconst passt = pdfTexte.length === mitPdf;\nlet k = 0;\n\nfunction schwaerzen(t) {\n  let s = String(t || '');\n  s = s.replace(/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b/g, '[Kontakt entfernt]');\n  s = s.replace(/https?:\\/\\/\\S+/g, '[Verweis entfernt]');\n  s = s.replace(/\\bwww\\.\\S+/gi, '[Verweis entfernt]');\n  // Rufnummern: +49..., 0221/..., 0170 ...\n  s = s.replace(/(?<![\\d])(?:\\+\\d{1,3}[\\s\\/-]?)?\\(?0\\d{2,5}\\)?[\\s\\/-]?\\d{3,}(?:[\\s\\/-]?\\d+)*/g, m =>\n    (m.replace(/\\D/g, '').length >= 7 ? '[Rufnummer entfernt]' : m));\n  // Hausnummer nach einem Strassennamen: Wort auf -strasse/-str./-weg/-platz/-allee/-gasse/-ring/-damm\n  s = s.replace(/([A-ZÄÖÜ][\\wÄÖÜäöüß.-]*(?:stra(?:ß|ss)e|str\\.|weg|platz|allee|gasse|ring|damm|ufer|chaussee))\\s+\\d+\\s*[a-zA-Z]?\\b/g,\n    '$1 [Hausnummer entfernt]');\n  return s.replace(/[ \\t]{2,}/g, ' ').trim();\n}\n\nconst raus = [];\nfor (const i of mails) {\n  const j = i.json || {};\n  const pdf = (j.hat_pdf && passt) ? (pdfTexte[k++] || '') : '';\n  const teile = [j.mailtext, pdf].filter(Boolean);\n  const roh = teile.join('\\n\\n--- Anhang ---\\n\\n');\n  const text = schwaerzen(roh);\n  const gekuerzt = text.slice(0, 60000);\n  const anweisung = [\n    'Du liest den Text eines Immobilien-Exposes und fuellst nur erlaubte Felder.',\n    'Erlaubt sind ausschliesslich: zimmer, etage, baujahr, stadtteil, ausstattung.',\n    'Verboten sind Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert. Nenne sie nie.',\n    'Fuelle ein Feld nur, wenn der Text es klar sagt. Sonst null.',\n    'Gib zu jedem gefuellten Feld genau ein Zitat aus dem Text.',\n    'Das Zitat muss eine zusammenhaengende Stelle sein, Zeichen fuer Zeichen abgeschrieben.',\n    'Setze nie zwei Stellen zusammen, kuerze nicht mit Auslassungspunkten, formuliere nicht um.',\n    'Findest du keine einzelne Stelle, die den Wert traegt, setze das Feld auf null.',\n    'Antworte nur mit JSON in dieser Form:',\n    '{\"zimmer\": Zahl oder null, \"etage\": Text oder null, \"baujahr\": Zahl oder null,',\n    ' \"stadtteil\": Text oder null, \"ausstattung\": [Text], \"belege\": {\"feld\": \"Zitat\"}}',\n  ].join('\\n');\n  raus.push({ json: {\n    uid: j.uid,\n    betreff: schwaerzen(j.betreff),\n    empfangen_am: j.empfangen_am,\n    kandidaten: j.kandidaten || [],\n    expose_id: (j.kandidaten || [])[0] || '',\n    zeichen: gekuerzt.length,\n    lesbar: gekuerzt.length >= 200,      // fail-closed: zu wenig Text, kein Modellaufruf\n    text: gekuerzt,\n    body: {\n      model: 'gpt-oss-120b',\n      temperature: 0,\n      max_tokens: 3000,\n      reasoning_effort: 'low',   // gpt-oss denkt sonst das Fenster leer\n      response_format: { type: 'json_object' },\n      messages: [\n        { role: 'system', content: anweisung },\n        { role: 'user', content: gekuerzt },\n      ],\n    },\n  }});\n}\nreturn raus;\n"
+        "jsCode": "// S2 Schwaerzer (E38): Hausnummer und Kontaktdaten raus, Strasse und Stadtteil bleiben.\n// Eingabe: die gefilterten Mails, bei PDF zusaetzlich der ausgelesene Text.\n// Ausgabe: ein Item je Mail mit geschwaerztem Text. Fail-closed: ohne Text kein Modellaufruf.\n// Die Anhangstexte kommen ohne UID zurueck. Sie stehen aber in derselben Reihenfolge\n// wie die Mails mit Anhang. Stimmt die Zahl nicht, wird kein Anhang zugeordnet (fail-closed).\n// Der Knoten \"Extract From PDF\" legt den Text unter text ab.\nconst pdfTexte = $input.all().map(i => String(((i.json || {}).pdf_text) || ((i.json || {}).text) || '')).filter(Boolean);\nconst mails = $('Maklerpost filtern').all();\nconst mitPdf = mails.filter(i => (i.json || {}).hat_pdf).length;\nconst passt = pdfTexte.length === mitPdf;\nlet k = 0;\n\nfunction schwaerzen(t) {\n  let s = String(t || '');\n  s = s.replace(/\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b/g, '[Kontakt entfernt]');\n  s = s.replace(/https?:\\/\\/\\S+/g, '[Verweis entfernt]');\n  s = s.replace(/\\bwww\\.\\S+/gi, '[Verweis entfernt]');\n  // Rufnummern: +49..., 0221/..., 0170 ...\n  s = s.replace(/(?<![\\d])(?:\\+\\d{1,3}[\\s\\/-]?)?\\(?0\\d{2,5}\\)?[\\s\\/-]?\\d{3,}(?:[\\s\\/-]?\\d+)*/g, m =>\n    (m.replace(/\\D/g, '').length >= 7 ? '[Rufnummer entfernt]' : m));\n  // Hausnummer nach einem Strassennamen: Wort auf -strasse/-str./-weg/-platz/-allee/-gasse/-ring/-damm\n  s = s.replace(/([A-ZÄÖÜ][\\wÄÖÜäöüß.-]*(?:stra(?:ß|ss)e|str\\.|weg|platz|allee|gasse|ring|damm|ufer|chaussee))\\s+\\d+\\s*[a-zA-Z]?\\b/g,\n    '$1 [Hausnummer entfernt]');\n  return s.replace(/[ \\t]{2,}/g, ' ').trim();\n}\n\nconst raus = [];\nfor (const i of mails) {\n  const j = i.json || {};\n  const pdf = (j.hat_pdf && passt) ? (pdfTexte[k++] || '') : '';\n  const teile = [j.mailtext, pdf].filter(Boolean);\n  const roh = teile.join('\\n\\n--- Anhang ---\\n\\n');\n  const text = schwaerzen(roh);\n  const gekuerzt = text.slice(0, 60000);\n  const anweisung = [\n    'Du liest den Text eines Immobilien-Exposes und fuellst nur erlaubte Felder.',\n    'Erlaubt sind ausschliesslich: zimmer, etage, baujahr, stadtteil, ausstattung.',\n    'Verboten sind Preis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert. Nenne sie nie.',\n    'Fuelle ein Feld nur, wenn der Text es klar sagt. Sonst null.',\n    'Gib zu jedem gefuellten Feld genau ein Zitat aus dem Text.',\n    'Das Zitat muss eine zusammenhaengende Stelle sein, Zeichen fuer Zeichen abgeschrieben.',\n    'Setze nie zwei Stellen zusammen, kuerze nicht mit Auslassungspunkten, formuliere nicht um.',\n    'Findest du keine einzelne Stelle, die den Wert traegt, setze das Feld auf null.',\n    'Antworte nur mit JSON in dieser Form:',\n    '{\"zimmer\": Zahl oder null, \"etage\": Text oder null, \"baujahr\": Zahl oder null,',\n    ' \"stadtteil\": Text oder null, \"ausstattung\": [Text], \"belege\": {\"feld\": \"Zitat\"}}',\n  ].join('\\n');\n  raus.push({ json: {\n    uid: j.uid,\n    betreff: schwaerzen(j.betreff),\n    empfangen_am: j.empfangen_am,\n    kandidaten: j.kandidaten || [],\n    expose_id: (j.kandidaten || [])[0] || '',\n    zeichen: gekuerzt.length,\n    lesbar: gekuerzt.length >= 200 && !!((j.kandidaten || [])[0]),   // ohne Exposenummer kein Modellaufruf\n    text: gekuerzt,\n    body: {\n      model: 'gpt-oss-120b',\n      temperature: 0,\n      max_tokens: 3000,\n      reasoning_effort: 'low',   // gpt-oss denkt sonst das Fenster leer\n      response_format: { type: 'json_object' },\n      messages: [\n        { role: 'system', content: anweisung },\n        { role: 'user', content: gekuerzt },\n      ],\n    },\n  }});\n}\nreturn raus;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -167,7 +167,7 @@
         500,
         0
       ],
-      "id": "e96bcfb1-94c5-4d2f-b702-fc7fb256298e",
+      "id": "54f69e41-dfe5-4afe-ad5c-36b4893738d6",
       "name": "S2 Schwaerzer"
     },
     {
@@ -181,7 +181,7 @@
           },
           "conditions": [
             {
-              "id": "84cb8fc8-9e69-4542-a1ed-9cffc1bcab92",
+              "id": "03aa95c3-41c7-456f-9b1a-0a15a6a0ff63",
               "leftValue": "={{ $json.lesbar }}",
               "rightValue": "",
               "operator": {
@@ -202,7 +202,7 @@
         720,
         0
       ],
-      "id": "e1b1812a-9715-46d3-b7a9-ecfac139c96b",
+      "id": "15893d90-3d06-4935-b529-0a205a0ee2c3",
       "name": "Lesbar?"
     },
     {
@@ -229,7 +229,7 @@
         940,
         -120
       ],
-      "id": "0a5e7443-3766-4c98-bbb0-db3f3a11c590",
+      "id": "deb8ddf8-4af1-4e6b-9a88-da8c917be95e",
       "name": "C1 Leser (lokales Modell)",
       "credentials": {
         "openAiApi": {
@@ -249,7 +249,7 @@
         1160,
         -120
       ],
-      "id": "a734c7e1-c29c-47ff-b863-bcf4b9c1ac5c",
+      "id": "3ff02ba1-056b-4f23-be35-4387a5cf2d8a",
       "name": "Antwort pruefen"
     },
     {
@@ -323,7 +323,7 @@
         1380,
         -120
       ],
-      "id": "bd8e9433-5013-44d3-9e82-6297976e425e",
+      "id": "81a3f1fc-7d34-42d1-98bc-c0fa1e4a1ff2",
       "name": "objekt: Exposefelder schreiben",
       "onError": "continueRegularOutput"
     },
@@ -420,13 +420,13 @@
         1600,
         -120
       ],
-      "id": "48b72f8a-0288-4ae8-b407-8b340a10ba77",
+      "id": "ffa13900-b4af-43bb-804a-439739576abb",
       "name": "Ereignis EXPOSE"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// UIDs der verarbeiteten Mails einsammeln (ein Item fuer den IMAP-Abschluss).\nconst liste = $('Antwort pruefen').all().map(i => (i.json || {}).uid).filter(u => u !== undefined && u !== null);\nreturn [{ json: { uid_list: liste.join(',') } }];\n"
+        "jsCode": "// UIDs der verarbeiteten Mails einsammeln. Ohne UID endet der Zweig hier.\nconst liste = $('Antwort pruefen').all()\n  .map(i => (i.json || {}).uid)\n  .filter(u => u !== undefined && u !== null);\nif (!liste.length) return [];\nreturn [{ json: { uid_list: liste.join(',') } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -434,7 +434,7 @@
         1820,
         -120
       ],
-      "id": "ccf93d86-74a7-4c30-9084-e0e4de7a29a1",
+      "id": "cba3c8b8-02c5-4184-ba08-835a1a96f560",
       "name": "UIDs einsammeln",
       "executeOnce": true
     },
@@ -458,7 +458,7 @@
         2040,
         -120
       ],
-      "id": "c91c86c6-c0d4-41a1-94d4-6be58e7cafb3",
+      "id": "e50dca00-5923-4fbd-b528-4b039420ec41",
       "name": "IMAP: als gelesen markieren",
       "credentials": {
         "imapApi": {
@@ -490,7 +490,7 @@
         2260,
         -120
       ],
-      "id": "5818bd50-7441-4f72-8507-5e6ff8f7b35d",
+      "id": "8b1779ae-0b04-4989-80a2-565b7558d0a0",
       "name": "IMAP: nach Immo/Archiv",
       "credentials": {
         "imapApi": {
@@ -502,7 +502,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// UIDs der unlesbaren Mails einsammeln.\nconst liste = $('S2 Schwaerzer').all().filter(i => !(i.json || {}).lesbar).map(i => i.json.uid).filter(u => u !== undefined && u !== null);\nreturn [{ json: { uid_list: liste.join(',') } }];\n"
+        "jsCode": "// UIDs der unlesbaren Mails einsammeln. Ohne UID endet der Zweig hier.\nconst liste = $('S2 Schwaerzer').all()\n  .filter(i => !(i.json || {}).lesbar)\n  .map(i => (i.json || {}).uid)\n  .filter(u => u !== undefined && u !== null);\nif (!liste.length) return [];\nreturn [{ json: { uid_list: liste.join(',') } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -510,7 +510,7 @@
         940,
         140
       ],
-      "id": "2861509c-5d3b-4f26-823c-a9044209717c",
+      "id": "4b062e15-acd4-4b2a-a7a5-580386716cba",
       "name": "UIDs unlesbar einsammeln",
       "executeOnce": true
     },
@@ -534,7 +534,7 @@
         1160,
         140
       ],
-      "id": "b1cdcae4-67ef-433e-b986-a01a288f205d",
+      "id": "a1e32cf1-e051-4e38-bea5-bf9d87bd9933",
       "name": "IMAP: unlesbar als gelesen",
       "credentials": {
         "imapApi": {
@@ -566,7 +566,7 @@
         1380,
         140
       ],
-      "id": "bf1a63e7-fcae-4230-b36c-b4203c9d830f",
+      "id": "53c37e61-69e9-4a01-abfb-2443eb35a980",
       "name": "IMAP: unlesbar nach Immo/DLQ",
       "credentials": {
         "imapApi": {
@@ -577,7 +577,7 @@
     },
     {
       "parameters": {
-        "content": "### C1 Leser mit S2 Schwaerzer (Phase 1b)\n\nAlle 15 Minuten holt dieser Ablauf die ungelesenen Mails, die NICHT von\nmyscout@immobilienscout24.de kommen. Das sind die Antworten der Makler.\n\nS2 Schwaerzer entfernt Rufnummern, Mailadressen, Verweise und Hausnummern,\nbevor Text den Thor erreicht (E38, R19). Strasse und Stadtteil bleiben.\n\nC1 fragt das lokale Modell ueber LiteLLM (Schluessel immo). Es fuellt nur die\nPositivliste aus Konzept 5.7: zimmer, etage, baujahr, stadtteil, ausstattung.\nPreis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt.\nGefuellte Felder tragen die Marke modell und zaehlen nicht in die Belegdichte.\n\nEINRICHTUNG:\n1. Tabelle objekt braucht die Spalten expose_status, expose_am, expose_felder (alle String).\n2. Im Knoten \"C1 Leser (lokales Modell)\" die Zugangsdaten \"LiteLLM immo\" auswaehlen.\n3. Im Knoten \"IMAP Maklerpost lesen\" muss \"Attachments Info\" unter\n   Include Message Parts stehen; die Datei selbst holt \"IMAP: Anhang laden\".\n\nZITATANKER: Jedes Feld traegt beleg_geprueft. Steht dort false, kam der Beleg\nnicht woertlich im Text vor. Der Wert bleibt, gilt aber als unbelegt (R1, R7).\n",
+        "content": "### C1 Leser mit S2 Schwaerzer (Phase 1b)\n\nAlle 15 Minuten holt dieser Ablauf die ungelesenen Mails, die NICHT von\nmyscout@immobilienscout24.de kommen. Das sind die Antworten der Makler.\n\nS2 Schwaerzer entfernt Rufnummern, Mailadressen, Verweise und Hausnummern,\nbevor Text den Thor erreicht (E38, R19). Strasse und Stadtteil bleiben.\n\nC1 fragt das lokale Modell ueber LiteLLM (Schluessel immo). Es fuellt nur die\nPositivliste aus Konzept 5.7: zimmer, etage, baujahr, stadtteil, ausstattung.\nPreis, Wohnflaeche, Hausgeld, Ruecklage und Energiekennwert bleiben gesperrt.\nGefuellte Felder tragen die Marke modell und zaehlen nicht in die Belegdichte.\n\nEINRICHTUNG:\n1. Tabelle objekt braucht die Spalten expose_status, expose_am, expose_felder (alle String).\n2. Im Knoten \"C1 Leser (lokales Modell)\" die Zugangsdaten \"LiteLLM immo\" auswaehlen.\n3. Im Knoten \"IMAP Maklerpost lesen\" pruefen, dass \"Attachments\" unter\n   Include Message Parts steht.\n",
         "height": 480,
         "width": 560
       },
@@ -587,7 +587,7 @@
         -620,
         260
       ],
-      "id": "f6f11d32-3dd5-4922-a053-997e59eb63cd",
+      "id": "86f7afe9-75a9-4e40-940d-b0b04513fe78",
       "name": "Sticky: C1"
     }
   ],
