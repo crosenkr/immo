@@ -28,9 +28,18 @@ def wenn(name, pos, left, op="true"):
 filtern = open('c1_filter.js', encoding='utf-8').read()
 schwaerzer = open('c1_schwaerzer.js', encoding='utf-8').read()
 antwort = open('c1_antwort.js', encoding='utf-8').read()
+anhang = open('c1_anhang.js', encoding='utf-8').read()
 
 uids = """// UIDs der verarbeiteten Mails einsammeln. Ohne UID endet der Zweig hier.
 const liste = $('Antwort pruefen').all()
+  .map(i => (i.json || {}).uid)
+  .filter(u => u !== undefined && u !== null);
+if (!liste.length) return [];
+return [{ json: { uid_list: liste.join(',') } }];
+"""
+uids_portal = """// UIDs der Portalpost einsammeln. Ohne UID endet der Zweig hier.
+const liste = $('Maklerpost filtern').all()
+  .filter(i => (i.json || {}).portalpost)
   .map(i => (i.json || {}).uid)
   .filter(u => u !== undefined && u !== null);
 if (!liste.length) return [];
@@ -49,12 +58,16 @@ nodes = [
  {"parameters": {"rule": {"interval": [{"field": "minutes", "minutesInterval": 15}]}},
   "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.3, "position": [-600, 0], "id": rid(),
   "name": "Alle 15 Minuten"},
+ {"parameters": {"operation": "get", "dataTableId": OBJ, "returnAll": True, "options": {}},
+  "type": "n8n-nodes-base.dataTable", "typeVersion": 1.1, "position": [-490, 0], "id": rid(),
+  "name": "Objekte holen", "alwaysOutputData": True,
+  "notes": "Liefert die bekannten Exposenummern und die angefragten Objekte fuer die Zuordnung."},
  {"parameters": {"resource": "email",
    "mailboxPath": {"__rl": True, "mode": "list", "value": "INBOX", "cachedResultName": "INBOX", "cachedResultUrl": ""},
    "emailDateRange": {}, "emailFlags": {"seen": False}, "emailSearchFilters": {},
    "includeParts": ["textContent", "htmlContent", "attachmentsInfo"]},
   "type": "n8n-nodes-imap.imap", "typeVersion": 1, "position": [-380, 0], "id": rid(),
-  "name": "IMAP Maklerpost lesen", "credentials": IMAP, "alwaysOutputData": True,
+  "name": "IMAP Maklerpost lesen", "credentials": IMAP, "alwaysOutputData": True, "executeOnce": True,
   "notes": "Holt alle ungelesenen Mails. Suchauftragsmails von myscout@ holt S1 und werden hier verworfen."},
  code("Maklerpost filtern", [-160, 0], filtern),
  wenn("Hat PDF?", [60, 0], "={{ $json.hat_pdf }}"),
@@ -63,7 +76,8 @@ nodes = [
    "emailUid": "={{ $json.uid }}", "allAttachments": True, "includeInlineAttachments": False},
   "type": "n8n-nodes-imap.imap", "typeVersion": 1, "position": [280, -220], "id": rid(),
   "name": "IMAP: Anhang laden", "credentials": IMAP, "onError": "continueRegularOutput"},
- {"parameters": {"operation": "pdf", "binaryPropertyName": "attachment_0",
+ code("Anhang waehlen", [140, -220], anhang),
+ {"parameters": {"operation": "pdf", "binaryPropertyName": "={{ $json.anhang_feld }}",
    "options": {"joinPages": True}, "destinationKey": "pdf_text"},
   "type": "n8n-nodes-base.extractFromFile", "typeVersion": 1, "position": [280, -120], "id": rid(),
   "name": "PDF-Text holen", "onError": "continueRegularOutput"},
@@ -92,7 +106,7 @@ nodes = [
        "objekt_schluessel": "={{ $('Antwort pruefen').item.json.objekt_schluessel }}",
        "typ": "EXPOSE", "zeit": "={{ $now.toISO() }}", "lauf_id": "={{ $execution.id }}",
        "quelle": "mail",
-       "nutzlast": "={{ JSON.stringify({expose_id: $('Antwort pruefen').item.json.expose_id, status: $('Antwort pruefen').item.json.expose_status, felder: $('Antwort pruefen').item.json.anzahl_felder}) }}"},
+       "nutzlast": "={{ JSON.stringify({expose_id: $('Antwort pruefen').item.json.expose_id, status: $('Antwort pruefen').item.json.expose_status, felder: $('Antwort pruefen').item.json.anzahl_felder, zuordnung: $('Antwort pruefen').item.json.zuordnung}) }}"},
      "matchingColumns": [], "schema": schema(["objekt_schluessel", "typ", "zeit", "lauf_id", "quelle", "nutzlast"]),
      "attemptToConvertTypes": False, "convertFieldsToString": False}, "options": {}},
   "type": "n8n-nodes-base.dataTable", "typeVersion": 1.1, "position": [1600, -120], "id": rid(),
@@ -144,12 +158,14 @@ EINRICHTUNG:
 ]
 
 conn = {
- "Alle 15 Minuten": {"main": [[{"node": "IMAP Maklerpost lesen", "type": "main", "index": 0}]]},
+ "Alle 15 Minuten": {"main": [[{"node": "Objekte holen", "type": "main", "index": 0}]]},
+ "Objekte holen": {"main": [[{"node": "IMAP Maklerpost lesen", "type": "main", "index": 0}]]},
  "IMAP Maklerpost lesen": {"main": [[{"node": "Maklerpost filtern", "type": "main", "index": 0}]]},
  "Maklerpost filtern": {"main": [[{"node": "Hat PDF?", "type": "main", "index": 0}]]},
  "Hat PDF?": {"main": [[{"node": "IMAP: Anhang laden", "type": "main", "index": 0}],
                         [{"node": "S2 Schwaerzer", "type": "main", "index": 0}]]},
- "IMAP: Anhang laden": {"main": [[{"node": "PDF-Text holen", "type": "main", "index": 0}]]},
+ "IMAP: Anhang laden": {"main": [[{"node": "Anhang waehlen", "type": "main", "index": 0}]]},
+ "Anhang waehlen": {"main": [[{"node": "PDF-Text holen", "type": "main", "index": 0}]]},
  "PDF-Text holen": {"main": [[{"node": "S2 Schwaerzer", "type": "main", "index": 0}]]},
  "S2 Schwaerzer": {"main": [[{"node": "Lesbar?", "type": "main", "index": 0}]]},
  "Lesbar?": {"main": [[{"node": "C1 Leser (lokales Modell)", "type": "main", "index": 0}],
@@ -164,7 +180,7 @@ conn = {
  "IMAP: unlesbar als gelesen": {"main": [[{"node": "IMAP: unlesbar nach Immo/DLQ", "type": "main", "index": 0}]]},
 }
 
-wf = {"name": "Immo C1 Leser Expose (Phase 1b, v5)", "nodes": nodes, "connections": conn,
+wf = {"name": "Immo C1 Leser Expose (Phase 1b, v10)", "nodes": nodes, "connections": conn,
       "settings": {"executionOrder": "v1", "binaryMode": "separate", "timeSavedMode": "fixed",
                    "errorWorkflow": "HLOJsWSboUnvLnFf", "callerPolicy": "workflowsFromSameOwner",
                    "executionTimeout": -1, "availableInMCP": False},
