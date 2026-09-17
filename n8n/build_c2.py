@@ -14,11 +14,10 @@ nodes = [
  {"parameters": {"rule": {"interval": [{"field": "minutes", "minutesInterval": 30}]}},
   "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.3, "position": [-400, 0], "id": rid(),
   "name": "Alle 30 Minuten"},
- {"parameters": {"operation": "get", "dataTableId": OBJ, "returnAll": True, "matchType": "allConditions",
-   "filters": {"conditions": [{"keyName": "expose_status", "condition": "eq", "keyValue": "gelesen"}]},
+ {"parameters": {"operation": "get", "dataTableId": OBJ, "returnAll": True,
    "options": {}},
   "type": "n8n-nodes-base.dataTable", "typeVersion": 1.1, "position": [-180, 0], "id": rid(),
-  "name": "Gelesene Objekte holen", "alwaysOutputData": True},
+  "name": "Objekte holen", "alwaysOutputData": True},
  {"parameters": {"mode": "runOnceForAllItems", "jsCode": rechner},
   "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [40, 0], "id": rid(),
   "name": "Zustand und Vorscore rechnen"},
@@ -44,8 +43,9 @@ nodes = [
   "name": "Ereignis C2"},
  {"parameters": {"content": """### C2 Rechner (Phase 1b)
 
-Alle 30 Minuten holt dieser Ablauf die Objekte mit expose_status = gelesen
-und rechnet aus den Exposefeldern den Bauzustand.
+Alle 30 Minuten holt dieser Ablauf alle Objekte und rechnet aus den
+Exposefeldern den Bauzustand. Zeilen ohne Exposefelder uebergeht der Code.
+Damit zaehlen auch die Kurzangaben aus der Anfragebestaetigung (Status anfrage).
 
 Sockel aus dem Baujahr, Stichworte heben oder senken ihn (kernsaniert,
 modernisiert, sanierungsbeduerftig, Modernisierungsstau). Kein Modell (R3).
@@ -64,12 +64,12 @@ Gehoert nach ungeprueft.md.
   "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": [-420, 200], "id": rid(), "name": "Sticky: C2"},
 ]
 conn = {
- "Alle 30 Minuten": {"main": [[{"node": "Gelesene Objekte holen", "type": "main", "index": 0}]]},
- "Gelesene Objekte holen": {"main": [[{"node": "Zustand und Vorscore rechnen", "type": "main", "index": 0}]]},
+ "Alle 30 Minuten": {"main": [[{"node": "Objekte holen", "type": "main", "index": 0}]]},
+ "Objekte holen": {"main": [[{"node": "Zustand und Vorscore rechnen", "type": "main", "index": 0}]]},
  "Zustand und Vorscore rechnen": {"main": [[{"node": "objekt: Vorscore aktualisieren", "type": "main", "index": 0}]]},
  "objekt: Vorscore aktualisieren": {"main": [[{"node": "Ereignis C2", "type": "main", "index": 0}]]},
 }
-wf = {"name": "Immo C2 Rechner (Phase 1b, v1)", "nodes": nodes, "connections": conn,
+wf = {"name": "Immo C2 Rechner (Phase 1b, v2)", "nodes": nodes, "connections": conn,
       "settings": {"executionOrder": "v1", "binaryMode": "separate", "timeSavedMode": "fixed",
                    "errorWorkflow": "HLOJsWSboUnvLnFf", "callerPolicy": "workflowsFromSameOwner",
                    "executionTimeout": -1, "availableInMCP": False},
